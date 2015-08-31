@@ -1,5 +1,6 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhist_cnt =3
+let g:netrw_dirhist_cnt =4
 let g:netrw_dirhist_1='/Volumes/nyps2020-CaseSensitive/vrn-kallan/.git'
 let g:netrw_dirhist_2='/Users/leohen/dev/apache-tomcat-8.0.20'
 let g:netrw_dirhist_3='/Users/leohen/dev/apache-tomcat-8.0.20/conf'
+let g:netrw_dirhist_4='/Users/leohen/dotfiles'

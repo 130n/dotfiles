@@ -47,6 +47,7 @@ alias nyps-adminclient-run="cd $NYPS2020_ROOT/appl/fe.appl/adminclient.fe.appl/a
 alias nyps-quick-build="mvn clean install -f $NYPS2020_ROOT/pom.xml -P'!include-fe' -DskipTests"
 alias nypsbe-fast-build-deploy="mvn clean install -f $NYPS2020_ROOT/appl/be.appl/pom.xml -P'!include-fe' -DskipTests -Pdeploy"
 alias nyps-wildfly-deploy="mvn -f $NYPS2020_ROOT/appl/be.appl/ear.be.appl/pom.xml install -Pdeploy"
+alias nyps-wildfly-deploy-adsync="mvn -f $NYPS2020_ROOT/appl/adsync.appl/pom.xml install -Pdeploy"
 alias nyps-wildfly-client-deploy="mvn -f $NYPS2020_ROOT/appl/fe.appl/neoclient.fe.appl/pom.xml wildfly:deploy"
 alias nyps-wildfly-standalone="$NYPS2020_ROOT/tool/as.tool/wildfly.as.tool/target/server/wildfly-8.2.0.Final/bin/standalone.sh"
 alias nyps-wildfly-rebuild="mvn -f $NYPS2020_ROOT/tool/as.tool/pom.xml clean install -P setup-wildfly"

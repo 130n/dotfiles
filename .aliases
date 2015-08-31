@@ -2,8 +2,9 @@
 alias rz="source ~/.zshrc"
 alias ez="vim ~/.zshrc"
 alias eza="vim ~/.aliases"
-alias eza="vim ~/.functions"
+alias ezf="vim ~/.functions"
 alias ezn="vim ~/.nyps_profile"
 alias mou="open /Users/leohen/Applications/Mou.app"
+alias bootstrap-dotfiles="~/dotfiles/bootstrap.sh"
 
 
