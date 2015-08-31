@@ -1,0 +1,17 @@
+#functions
+function newbranch() {
+	NAME=feature/NYA-$1
+		git checkout -b $NAME
+		git push origin $NAME
+		git branch -u origin/$NAME
+}
+function nypstagt() {
+	TAG=nyps2020-NYA-$1-test-$2
+		git tag -a $TAG -m "Test $2 of feature NYA-$1"
+		git push origin $TAG
+}
+function nypstagr() {
+	TAG=nyps2020-NYA-$1-release
+		git tag -a $TAG -m "Feature NYA-$1 released"
+		git push origin $TAG
+}

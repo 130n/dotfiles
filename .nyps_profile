@@ -1,0 +1,77 @@
+#  NYPS profile
+
+function nyps-ssh {
+  ssh -t $@ 'echo -ne "\033]0;"$USER@$HOSTNAME"\007";/bin/bash'
+}
+
+export NYPS2020_ROOT=/Volumes/nyps2020-CaseSensitive/nyps2020
+export NYPSCLIENT_HOME=$NYPS2020_ROOT/appl/fe.appl/neoclient.fe.appl/yo
+
+#export EXTERNAL_IP_ADDRESS=172.19.52.YOUR_STATIC_IP_ADDRESS
+#export LEGACY_SERVER_IP_ADDRESS=172.19.52.YOUR_STATIC_LEGACY_IP_ADDRESS
+# Shell stuff
+alias ll="ls -l"
+alias la="ls -la"
+ 
+# Git
+alias ga="git add -A ."
+alias gb="git branch"
+alias gc="git commit -m" 
+alias glog="git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset' --abbrev-commit"
+alias gr="git pull --rebase"
+alias gs="git status"
+
+#Java
+alias java7="export JAVA_HOME=$JAVA7_HOME"
+alias java8="export JAVA_HOME=$JAVA8_HOME"
+
+#wildfly
+alias wildfly-add-user="$NYPS2020_ROOT/tool/as.tool/wildfly.as.tool/target/server/wildfly-8.2.0.Final/bin/add-user.sh"
+alias cdwildfly="cd $NYPS2020_ROOT/tool/as.tool/wildfly.as.tool/target/server/wildfly-8.2.0.Final/bin/"
+
+#NYPS2020
+alias cdnyps="cd $NYPS2020_ROOT"
+alias cdmanga="cd $NYPS2020_ROOT/appl/fe.appl/manga.fe.appl/yo"
+alias cdyoneo="cd $NYPS2020_ROOT/appl/fe.appl/neoclient.fe.appl/yo"
+alias nyps-mysql-authenticate_on="$NYPS2020_ROOT/etc/mysql/update-nyps-dev-authenticate.sh on"
+alias nyps-mysql-authenticate_off="$NYPS2020_ROOT/etc/mysql/update-nyps-dev-authenticate.sh off"
+alias nyps-mysql-reload="mvn clean compile exec:java -f $NYPS2020_ROOT/appl/tool.appl/dbloader.tool.appl/pom.xml"
+alias nyps-mysql-recreate="mysql -uroot -p < $NYPS2020_ROOT/etc/mysql/recreate-nyps-dev.sql"
+alias nyps-mysql-legacy="$NYPS2020_ROOT/etc/mysql/update-nyps-dev-jnp-host.sh $LEGACY_SERVER_IP_ADDRESS"
+
+alias nyps-oracle-drop="$NYPS2020_ROOT/etc/sqlplus/drop_db.sh nyps2020_local utv888 XE"
+alias nyps-oracle-reload="nyps-oracle-baseline-local; mvn -f $NYPS2020_ROOT/appl/tool.appl/db-migration.tool.appl/pom.xml clean install flyway:migrate"
+alias nyps-oracle-authenticate_on="echo exit | sqlplus64 nyps2020_local/utv888@oraexp/XE @$NYPS2020_ROOT/etc/sqlplus/update-nyps-oracle-authenticate.sql 'false' 'true'"
+alias nyps-oracle-authenticate_off="echo exit | sqlplus64 nyps2020_local/utv888@oraexp/XE @$NYPS2020_ROOT/etc/sqlplus/update-nyps-oracle-authenticate.sql 'true' 'false'"
+
+# oracle data pump alternative to baseline (includes a schema drop):
+alias nyps-oracle-prod-baseline-local="ssh oracle@oraexp 'bash db_load_dump.sh'"
+
+alias nyps-neoclient-run="cd $NYPSCLIENT_HOME && grunt serve --proxy-be"
+alias nyps-adminclient-run="cd $NYPS2020_ROOT/appl/fe.appl/adminclient.fe.appl/adminclient && grunt serve --proxy-be"
+alias nyps-quick-build="mvn clean install -f $NYPS2020_ROOT/pom.xml -P'!include-fe' -DskipTests"
+alias nypsbe-fast-build-deploy="mvn clean install -f $NYPS2020_ROOT/appl/be.appl/pom.xml -P'!include-fe' -DskipTests -Pdeploy"
+alias nyps-wildfly-deploy="mvn -f $NYPS2020_ROOT/appl/be.appl/ear.be.appl/pom.xml install -Pdeploy"
+alias nyps-wildfly-client-deploy="mvn -f $NYPS2020_ROOT/appl/fe.appl/neoclient.fe.appl/pom.xml wildfly:deploy"
+alias nyps-wildfly-standalone="$NYPS2020_ROOT/tool/as.tool/wildfly.as.tool/target/server/wildfly-8.2.0.Final/bin/standalone.sh"
+alias nyps-wildfly-rebuild="mvn -f $NYPS2020_ROOT/tool/as.tool/pom.xml clean install -P setup-wildfly"
+alias nyps-wildfly-adminclient-deploy="mvn -f $NYPS2020_ROOT/appl/be.appl/rest.be.appl/admin-api.rest.be.appl/pom.xml wildfly:deploy"
+alias nyps-smartdocuments-test-configuration="echo exit | sqlplus64 nyps2020_local/utv888@oraexp/XE @$NYPS2020_ROOT/etc/sqlplus/set-nyps-smartdocuments-configuration.sql 'https://sdtest.tillvaxtverket.se/' 'userid' 'password'"
+
+#manga stuff
+alias myapp-nyps-wildfly-rebuild="mvn -f $NYPS2020_ROOT/tool/as.tool/pom.xml clean install -P setup-wildfly -Dsystem.type=dev-myapp"
+alias myapp-nyps-wildfly-deploy="mvn -f $NYPS2020_ROOT/appl/myapp-be.appl/ear.myapp-be.appl/pom.xml install -Pdeploy"
+alias myapp-nyps-wildfly-deploy-full="mvn -f $NYPS2020_ROOT/appl/myapp-be.appl/pom.xml install -Pdeploy"
+alias myapp-nyps-wildfly-client-deploy="mvn -f $NYPS2020_ROOT/appl/fe.appl/manga.fe.appl/pom.xml wildfly:deploy"
+alias myapp-nyps-wildfly-client-deploy-full="mvn -f $NYPS2020_ROOT/appl/fe.appl/pom.xml wildfly:deploy"
+
+#DB stuff
+alias db-reload-dump="ssh oracle@oraexp 'bash db_import_test_dump.sh -f NYPS2020_LOCAL_150409_prod_28_prepared_cases_v4_to_v5.dmp'"
+#alias db-reload-dump="ssh oracle@oraexp 'bash db_import_test_dump.sh -f NYPS2020_LOCAL_150409_prod_28_prepared_cases_v4.dmp'"
+alias localized-strings-import='mvn -f $NYPS2020_ROOT/appl/tool.appl/import.tool.appl/localizedstring.import.tool.appl/pom.xml clean compile exec:java -Pimport-langspecstrings -Dexec.args="-f $NYPS2020_ROOT/appl/tool.appl/import.tool.appl/localizedstring.import.tool.appl/src/main/resources/translations_delta_v4_1-v5_0_fin.csv"'
+
+#grunt stuff
+alias neogrunt="grunt --base $NYPS2020_ROOT/appl/fe.appl/neoclient.fe.appl/yo --gruntfile $NYPS2020_ROOT/appl/fe.appl/neoclient.fe.appl/yo/Gruntfile.js"
+alias magrunt="grunt --base $NYPS2020_ROOT/appl/fe.appl/manga.fe.appl/yo --gruntfile $NYPS2020_ROOT/appl/fe.appl/manga.fe.appl/yo/Gruntfile.js"
+alias magruntsp="magrunt serve --proxy-be"
+alias neogruntsp="neogrunt serve --proxy-be"
