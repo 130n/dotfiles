@@ -1,14 +1,9 @@
 #  NYPS profile
 
-function nyps-ssh {
-  ssh -t $@ 'echo -ne "\033]0;"$USER@$HOSTNAME"\007";/bin/bash'
-}
 
 export NYPS2020_ROOT=/Volumes/nyps2020-CaseSensitive/nyps2020
 export NYPSCLIENT_HOME=$NYPS2020_ROOT/appl/fe.appl/neoclient.fe.appl/yo
 
-#export EXTERNAL_IP_ADDRESS=172.19.52.YOUR_STATIC_IP_ADDRESS
-#export LEGACY_SERVER_IP_ADDRESS=172.19.52.YOUR_STATIC_LEGACY_IP_ADDRESS
 # Shell stuff
 alias ll="ls -l"
 alias la="ls -la"

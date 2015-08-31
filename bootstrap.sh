@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ########## Variables
 
 dir=~/dotfiles                    # dotfiles directory

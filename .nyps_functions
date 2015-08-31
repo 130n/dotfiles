@@ -1,4 +1,7 @@
 #functions
+function nyps-ssh {
+  ssh -t $@ 'echo -ne "\033]0;"$USER@$HOSTNAME"\007";/bin/bash'
+}
 function newbranch() {
 	NAME=feature/NYA-$1
 		git checkout -b $NAME

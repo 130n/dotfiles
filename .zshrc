@@ -48,8 +48,8 @@ fi
 if [ -f ~/.aliases ]; then
     . ~/.aliases
 fi
-if [ -f ~/.functions ]; then
-    . ~/.functions
+if [ -f ~/.nyps_functions ]; then
+    . ~/.nyps_functions
 fi
 
 # run startup shizzle
