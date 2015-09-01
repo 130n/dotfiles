@@ -4,7 +4,7 @@
 dir=~/dotfiles                    # dotfiles directory
 olddir=~/dotfiles_old             # old dotfiles backup directory
 # list of files/folders to symlink in homedir
-files=".zshrc .vimrc .vim .aliases .functions .nyps_profile .oh-my-zsh/themes/agnoster-leon.zsh-theme"
+files=".zshrc .vimrc .vim .aliases .nyps_functions .nyps_profile .oh-my-zsh/themes/agnoster-leon.zsh-theme"
 
 ##########
 
