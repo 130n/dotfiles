@@ -53,15 +53,17 @@ alias nyps-wildfly-standalone="$NYPS2020_ROOT/tool/as.tool/wildfly.as.tool/targe
 alias nyps-wildfly-rebuild="mvn -f $NYPS2020_ROOT/tool/as.tool/pom.xml clean install -P setup-wildfly"
 alias nyps-wildfly-adminclient-deploy="mvn -f $NYPS2020_ROOT/appl/be.appl/rest.be.appl/admin-api.rest.be.appl/pom.xml wildfly:deploy"
 alias nyps-smartdocuments-test-configuration="echo exit | sqlplus64 nyps2020_local/utv888@oraexp/XE @$NYPS2020_ROOT/etc/sqlplus/set-nyps-smartdocuments-configuration.sql 'https://sdtest.tillvaxtverket.se/' 'userid' 'password'"
+alias nyps-int-test="mvn -f $NYPS2020_ROOT/test/service-int.test/pom.xml clean verify -Pint-test"
+alias nyps-smoke-test="mvn -f $NYPS2020_ROOT/test/service-int.test/pom.xml clean verify -Pint-test,smoke-test"
 
 #manga stuff
 alias myapp-nyps-wildfly-rebuild="mvn -f $NYPS2020_ROOT/tool/as.tool/pom.xml clean install -P setup-wildfly -Dsystem.type=dev-myapp"
 alias myapp-nyps-wildfly-deploy="mvn -f $NYPS2020_ROOT/appl/myapp-be.appl/ear.myapp-be.appl/pom.xml install -Pdeploy"
-alias myapp-nyps-wildfly-deploy-full="mvn -f $NYPS2020_ROOT/appl/myapp-be.appl/pom.xml install -Pdeploy"
-alias myapp-nyps-wildfly-client-deploy="mvn -f $NYPS2020_ROOT/appl/fe.appl/manga.fe.appl/pom.xml wildfly:deploy"
-alias myapp-nyps-wildfly-client-deploy-full="mvn -f $NYPS2020_ROOT/appl/fe.appl/pom.xml wildfly:deploy"
+alias myapp-nyps-wildfly-deploy-full-ma1="mvn -f $NYPS2020_ROOT/appl/myapp-be.appl/pom.xml install -Pdeploy"
+alias myapp-nyps-wildfly-client-deploy-ma2="mvn -f $NYPS2020_ROOT/appl/fe.appl/manga.fe.appl/pom.xml wildfly:deploy"
 
 #DB stuff
+alias ma-db-reload-dump="ssh oracle@oraexp 'bash db_import_test_dump_manga.sh -f NYPS2020_MIN_LOCAL_EMPTY.dmp' -t http://localhost:8080/mamock"
 alias db-reload-dump="ssh oracle@oraexp 'bash db_import_test_dump.sh -f NYPS2020_LOCAL_150409_prod_28_prepared_cases_v4_to_v5.dmp'"
 #alias db-reload-dump="ssh oracle@oraexp 'bash db_import_test_dump.sh -f NYPS2020_LOCAL_150409_prod_28_prepared_cases_v4.dmp'"
 alias localized-strings-import='mvn -f $NYPS2020_ROOT/appl/tool.appl/import.tool.appl/localizedstring.import.tool.appl/pom.xml clean compile exec:java -Pimport-langspecstrings -Dexec.args="-f $NYPS2020_ROOT/appl/tool.appl/import.tool.appl/localizedstring.import.tool.appl/src/main/resources/translations_delta_v4_1-v5_0_fin.csv"'
