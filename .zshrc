@@ -34,7 +34,7 @@ HIST_STAMPS="yyyy-mm-dd"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git jsontools)
+plugins=(jsontools)
 
 # User configuration
 
@@ -56,4 +56,7 @@ if [ -f ~/.nyps_functions ]; then
 fi
 
 # run startup shizzle
+eval $(thefuck --alias)
 archey -c
+
+test -e ${HOME}/.iterm2_shell_integration.zsh && source ${HOME}/.iterm2_shell_integration.zsh

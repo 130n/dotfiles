@@ -6,5 +6,6 @@ alias ezf="vim ~/.functions"
 alias ezn="vim ~/.nyps_profile"
 alias mou="open /Users/leohen/Applications/Mou.app"
 alias bootstrap-dotfiles="~/dotfiles/bootstrap.sh"
+alias ping="prettyping"
 
 
