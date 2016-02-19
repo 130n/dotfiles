@@ -8,6 +8,8 @@ let g:pathogen_disabled = ['vim-javascript']
 
 
 " OLD vimrc
+" Save a file as root (,W)
+noremap <leader>W :w !sudo tee % > /dev/null<CR>
 
 " Disable arrows
 nnoremap <up> <nop>
@@ -106,14 +108,14 @@ set title
 " Show the (partial) command as it’s being typed
 set showcmd
 " Use relative line numbers
-"				if exists("&relativenumber")
-"				set relativenumber
-"				au BufReadPost * set relativenumber
-"				endif
-"				" Start scrolling three lines before the horizontal window border
+if exists("&relativenumber")
+	set relativenumber
+	au BufReadPost * set relativenumber
+endif
+" Start scrolling three lines before the horizontal window border
 set scrolloff=3
 
-				" Strip trailing whitespace (,ss)
+" Strip trailing whitespace (,ss)
 function! StripWhitespace()
 				let save_cursor = getpos(".")
 				let old_query = getreg('/')
@@ -122,8 +124,6 @@ function! StripWhitespace()
 				call setreg('/', old_query)
 endfunction
 noremap <leader>ss :call StripWhitespace()<CR>
-" Save a file as root (,W)
-noremap <leader>W :w !sudo tee % > /dev/null<CR>
 " Move visual block
 vnoremap J :m '>+1<CR>gv=gv
 vnoremap K :m '<-2<CR>gv=gv

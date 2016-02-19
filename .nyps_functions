@@ -2,6 +2,27 @@
 function nyps-ssh {
   ssh -t $@ 'echo -ne "\033]0;"$USER@$HOSTNAME"\007";/bin/bash'
 }
+
+function longest-filenames () {
+	find . -type f -mtime -14 | sed 's/.*\///' | grep $1 | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2-
+}
+#function sshDbDump() {
+#	/usr/bin/expect <<EOF
+#		spawn ssh oracle@oraexp 'bash db_import_test_dump.sh -f NYPS2020_LOCAL_151214_prod_v6.0_dummy_documents.dmp'
+#		expect {
+#			"assword:" {
+#				send -- "utv888\r"
+#			}
+#		}
+#	EOF
+#}
+
+function newbug() {
+	NAME=bugfix/NYA-$1
+		git checkout -b $NAME
+		git push origin $NAME
+		git branch -u origin/$NAME
+}
 function newbranch() {
 	NAME=feature/NYA-$1
 		git checkout -b $NAME
@@ -18,3 +39,4 @@ function nypstagr() {
 		git tag -a $TAG -m "Feature NYA-$1 released"
 		git push origin $TAG
 }
+

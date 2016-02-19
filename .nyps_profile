@@ -46,10 +46,11 @@ alias nyps-oracle-authenticate_off="echo exit | sqlplus64 nyps2020_local/utv888@
 alias nyps-oracle-prod-baseline-local="ssh oracle@oraexp 'bash db_load_dump.sh'"
 
 alias nyps-quick-build="mvn clean install -f $NYPS2020_ROOT/pom.xml -P'!include-fe' -DskipTests"
-alias nypsbe-fast-build-deploy="mvn clean install -f $NYPS2020_ROOT/appl/be.appl/pom.xml -P'!include-fe' -DskipTests -Pdeploy"
+alias ny1-be-build="mvn clean install -f /Volumes/nyps2020-CaseSensitive/nyps2020/appl/be.appl/pom.xml -P'!include-fe' -DskipTests"
+alias ny2-fast-build-deploy="mvn clean install -f $NYPS2020_ROOT/appl/be.appl/pom.xml -P'!include-fe' -DskipTests -Pdeploy"
+alias ny3-nyps-wildfly-client-deploy="mvn -f $NYPS2020_ROOT/appl/fe.appl/neoclient.fe.appl/pom.xml wildfly:deploy"
 alias nyps-wildfly-deploy="mvn -f $NYPS2020_ROOT/appl/be.appl/ear.be.appl/pom.xml install -Pdeploy"
 alias nyps-wildfly-deploy-adsync="mvn -f $NYPS2020_ROOT/appl/adsync.appl/pom.xml install -Pdeploy"
-alias nyps-wildfly-client-deploy="mvn -f $NYPS2020_ROOT/appl/fe.appl/neoclient.fe.appl/pom.xml wildfly:deploy"
 alias nyps-wildfly-standalone="$NYPS2020_ROOT/tool/as.tool/wildfly.as.tool/target/server/wildfly-8.2.0.Final/bin/standalone.sh"
 alias nyps-wildfly-rebuild="mvn -f $NYPS2020_ROOT/tool/as.tool/pom.xml clean install -P setup-wildfly"
 alias nyps-smartdocuments-test-configuration="echo exit | sqlplus64 nyps2020_local/utv888@oraexp/XE @$NYPS2020_ROOT/etc/sqlplus/set-nyps-smartdocuments-configuration.sql 'https://sdtest.tillvaxtverket.se/' 'userid' 'password'"
@@ -64,12 +65,14 @@ alias myapp-nyps-wildfly-rebuild="mvn -f $NYPS2020_ROOT/tool/as.tool/pom.xml cle
 alias myapp-nyps-wildfly-deploy="mvn -f $NYPS2020_ROOT/appl/myapp-be.appl/ear.myapp-be.appl/pom.xml install -Pdeploy"
 alias myapp-nyps-wildfly-deploy-full-ma1="mvn -f $NYPS2020_ROOT/appl/myapp-be.appl/pom.xml install -Pdeploy"
 alias myapp-nyps-wildfly-client-deploy-ma2="mvn -f $NYPS2020_ROOT/appl/fe.appl/manga.fe.appl/pom.xml wildfly:deploy"
+alias myapp-build-ma3="mvn -f $NYPS2020_ROOT/appl/myapp-be.appl/pom.xml install"
 
 #DB stuff
 alias ma-db-reload-dump="ssh oracle@oraexp 'bash db_import_test_dump_manga.sh -f NYPS2020_MIN_LOCAL_EMPTY.dmp' -t http://localhost:8080/mamock"
-alias db-reload-dump="ssh oracle@oraexp 'bash db_import_test_dump.sh -f NYPS2020_LOCAL_150409_prod_28_prepared_cases_v5.1.dmp'"
-#alias db-reload-dump="ssh oracle@oraexp 'bash db_import_test_dump.sh -f NYPS2020_LOCAL_150409_prod_28_prepared_cases_v4_to_v5.dmp'"
-#alias db-reload-dump="ssh oracle@oraexp 'bash db_import_test_dump.sh -f NYPS2020_LOCAL_150409_prod_28_prepared_cases_v4.dmp'"
+#alias db-reload-dump="ssh oracle@oraexp 'bash db_import_test_dump.sh -f NYPS2020_LOCAL_150409_prod_28_prepared_cases_v6.0.dmp'"
+alias db-baseline-nyps-dump="ssh oracle@oraexp 'bash db_import_test_dump.sh -f NYPS2020_LOCAL_151214_prod_v6.0_dummy_documents.dmp'"
+alias db-migrate-nyps-dump="mvn -f $NYPS2020_ROOT/appl/tool.appl/db-migration.tool.appl/pom.xml clean install flyway:migrate"
+alias db-reload-nyps-dump="db-baseline-nyps-dump; db-migrate-nyps-dump" 
 alias localized-strings-import='mvn -f $NYPS2020_ROOT/appl/tool.appl/import.tool.appl/localizedstring.import.tool.appl/pom.xml clean compile exec:java -Pimport-langspecstrings -Dexec.args="-f $NYPS2020_ROOT/appl/tool.appl/import.tool.appl/localizedstring.import.tool.appl/src/main/resources/translations_delta_v4_1-v5_0_fin.csv"'
 
 #grunt stuff
