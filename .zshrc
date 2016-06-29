@@ -54,6 +54,9 @@ fi
 if [ -f ~/.nyps_functions ]; then
     . ~/.nyps_functions
 fi
+if [ -f ~/.functions ]; then
+    . ~/.functions
+fi
 
 # run startup shizzle
 eval $(thefuck --alias)

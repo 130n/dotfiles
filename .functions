@@ -5,3 +5,7 @@ function f() {
 function r() {
 	grep "$1" ${@:2} -R . 
 }
+function emourl() {
+	echo 'curl -H "Content-Type: application/octet-stream" -v -X POST localhost:8888/emotions --data-binary @$1 -o /Users/leohen/Desktop/new-image.jpg'
+	curl -H "Content-Type: application/octet-stream" -v -X POST localhost:8888/emotions --data-binary @$1 -o /Users/leohen/Desktop/new-image.jpg
+}
