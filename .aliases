@@ -9,4 +9,21 @@ alias mou="open /Users/leohen/Applications/Mou.app"
 alias bootstrap-dotfiles="~/dotfiles/bootstrap.sh"
 alias ping="prettyping"
 
+# Shell stuff
+alias ll="ls -l"
+alias la="ls -la"
+ 
+# Git
+alias ga="git add -A ."
+alias gb="git branch"
+alias gc="git commit -m" 
+alias gca='git commit -v -a'
+alias glog="git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset' --abbrev-commit"
+alias gr="git pull --rebase"
+alias gs="git status"
+alias gcleean_branches='git branch --merged develop | grep "feature" | grep -v "\*" | xargs -n 1 git branch -d'
+
+#Java
+alias java7="export JAVA_HOME=$JAVA7_HOME"
+alias java8="export JAVA_HOME=$JAVA8_HOME"
 

@@ -1,5 +1,5 @@
 # Path to your oh-my-zsh installation.
-export ZSH=/Users/leohen/.oh-my-zsh
+export ZSH=${HOME}/.oh-my-zsh
 #PATH=/usr/local/bin:$PATH
 #PATH=$HOME/bin:$PATH
 #export PATH
@@ -44,16 +44,16 @@ source $ZSH/oh-my-zsh.sh
 if [ -f ~/.exports ]; then
     . ~/.exports
 fi
-if [ -f ~/.nyps_profile ]; then
-    . ~/.nyps_profile
-fi
+#if [ -f ~/.nyps_profile ]; then
+#    . ~/.nyps_profile
+#fi
 
 if [ -f ~/.aliases ]; then
     . ~/.aliases
 fi
-if [ -f ~/.nyps_functions ]; then
-    . ~/.nyps_functions
-fi
+#if [ -f ~/.nyps_functions ]; then
+#    . ~/.nyps_functions
+#fi
 if [ -f ~/.functions ]; then
     . ~/.functions
 fi

@@ -1,1 +1,1 @@
-/Users/leohen/dotfiles/.vim
+.vim
