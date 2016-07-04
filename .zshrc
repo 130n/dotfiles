@@ -3,6 +3,7 @@ export ZSH=${HOME}/.oh-my-zsh
 #PATH=/usr/local/bin:$PATH
 #PATH=$HOME/bin:$PATH
 #export PATH
+DEFAULT_USER=`whoami`
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
