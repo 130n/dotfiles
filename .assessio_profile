@@ -1,0 +1,2 @@
+# Reload env variables
+alias update-env-vars="grep -E "^setenv" /etc/launchd.conf | xargs -t -L 1 launchctl"

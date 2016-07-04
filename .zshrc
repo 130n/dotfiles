@@ -44,9 +44,9 @@ source $ZSH/oh-my-zsh.sh
 if [ -f ~/.exports ]; then
     . ~/.exports
 fi
-#if [ -f ~/.nyps_profile ]; then
-#    . ~/.nyps_profile
-#fi
+if [ -f ~/.nyps_profile ]; then
+    . ~/.assessio_profile
+fi
 
 if [ -f ~/.aliases ]; then
     . ~/.aliases

@@ -5,7 +5,7 @@ sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/i
 #homebrew
 ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-brew install thefuck archey fpp node tpp wget git htop-osx sl zsh prettyping
+brew install thefuck archey fpp node tpp wget git htop-osx sl zsh prettyping maven
 
 gem install bropages
 
