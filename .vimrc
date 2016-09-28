@@ -4,7 +4,7 @@ syntax on
 filetype plugin indent on
 set mouse=a
 
-let g:pathogen_disabled = ['vim-javascript']
+"let g:pathogen_disabled = ['vim-javascript']
 
 
 " OLD vimrc
@@ -33,10 +33,13 @@ nnoremap <C-H> <C-W><C-H>
 " jj to normalmode
 inoremap jj <Esc>
 
-set smartindent
-set autoindent
+"filetype plugin indent on
+" show existing tab with 4 spaces width
 set tabstop=4
+set softtabstop=4
+" when indenting with '>', use 4 spaces width
 set shiftwidth=4
+" On pressing tab, insert 4 spaces
 set expandtab
 
 " Make Vim more useful
@@ -78,8 +81,6 @@ set number
 syntax on
 " Highlight current line
 set cursorline
-" Make tabs as wide as two spaces
-"set tabstop=2
 " Show “invisible” characters
 set lcs=tab:▸\ ,trail:·,eol:¬,nbsp:_
 set list

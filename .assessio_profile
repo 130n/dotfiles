@@ -1,2 +1,34 @@
+# EXPORTS
+export ASSESSIO_ROOT="/Users/leon/dev/assessio"
+export ASSESSIO_FE="$ASSESSIO_ROOT/frontend"
+export ASSESSIO_BE="$ASSESSIO_ROOT/backend"
+export ASSESSIO_SELENIUM="$ASSESSIO_FE/ascend-selenium"
+
+# alias
+alias cdass="cd $ASSESSIO_ROOT"
+alias cdbe="cd $ASSESSIO_BE"
+alias cdfe="cd $ASSESSIO_FE"
+alias cdng="cd $ASSESSIO_FE/silversurfer-frontend"
+alias cdsel="cd $ASSESSIO_SELENIUM"
 # Reload env variables
 alias update-env-vars="grep -E "^setenv" /etc/launchd.conf | xargs -t -L 1 launchctl"
+
+alias run-protractor="cdsel && protractor --params.environment=local protractor.local.conf.js --suite dev"
+alias run-protractor-local="cdsel && protractor --params.environment=local protractor.local.conf.js --suite all"
+alias run-protractor-int="cdsel && protractor --params.environment=intsys protractor.local.conf.js --suite dev"
+alias run-protractor-all="cdsel && protractor --params.environment=intsys protractor.conf.js --suite all"
+
+# Adecco campaign
+alias econf="vim ~/.assessiotest.conf"
+alias cdad="cd $ASSESSIO_ROOT/adecco-campaign"
+alias cdad-be="cd $ASSESSIO_ROOT/adecco-campaign/backend"
+alias ad-fe-grunt="cdad && grunt dev"
+alias ad-be-python="cdad-be && export PYTHONPATH=. && python assessiotest"
+alias ad-run-protractor="cdad && protractor --baseUrl='http://localhost:5013' protractor.conf.js"
+alias ad-run-protractor-aws="cdad && protractor protractor.conf.js"
+
+# AWS
+alias aws-adecco-status="aws ec2 describe-instances --output table --region eu-west-1 --profile adecco"
+function ec2ssh(){
+	ssh -i ~/.ssh/adecco_key.pem ec2-user@$1
+}

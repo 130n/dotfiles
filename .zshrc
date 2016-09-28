@@ -3,7 +3,9 @@ export ZSH=${HOME}/.oh-my-zsh
 #PATH=/usr/local/bin:$PATH
 #PATH=$HOME/bin:$PATH
 #export PATH
-DEFAULT_USER=`whoami`
+
+# Remove user@machine
+#DEFAULT_USER=`whoami`
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
@@ -35,7 +37,7 @@ HIST_STAMPS="yyyy-mm-dd"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(jsontools)
+plugins=(jsontools, virtualenvwrapper, virtualenv)
 
 # User configuration
 
