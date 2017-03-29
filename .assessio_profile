@@ -9,14 +9,16 @@ alias cdass="cd $ASSESSIO_ROOT"
 alias cdbe="cd $ASSESSIO_BE"
 alias cdfe="cd $ASSESSIO_FE"
 alias cdng="cd $ASSESSIO_FE/silversurfer-frontend"
-alias cdsel="cd $ASSESSIO_SELENIUM"
+#alias cdsel="cd $ASSESSIO_SELENIUM"
+alias cdsel="cd $ASSESSIO_FE/silversurfer-frontend/protractor"
 # Reload env variables
 alias update-env-vars="grep -E "^setenv" /etc/launchd.conf | xargs -t -L 1 launchctl"
 
 alias run-protractor="cdsel && protractor --params.environment=local protractor.local.conf.js --suite dev"
-alias run-protractor-local="cdsel && protractor --params.environment=local protractor.local.conf.js --suite all"
+alias run-protractor-local-all="cdsel && protractor --params.environment=local protractor.local.conf.js --suite all"
 alias run-protractor-int="cdsel && protractor --params.environment=intsys protractor.local.conf.js --suite dev"
-alias run-protractor-all="cdsel && protractor --params.environment=intsys protractor.conf.js --suite all"
+alias run-protractor-int-all="cdsel && protractor --params.environment=intsys protractor.conf.js --suite all"
+alias run-protractor-dist-all="cdsel && protractor --params.environment=distLocal protractor.local.conf.js --suite all"
 
 # Adecco campaign
 alias econf="vim ~/.assessiotest.conf"
@@ -29,6 +31,18 @@ alias ad-run-protractor-aws="cdad && protractor protractor.conf.js"
 
 # AWS
 alias aws-adecco-status="aws ec2 describe-instances --output table --region eu-west-1 --profile adecco"
+alias aws-assessio-instances="aws ec2 --profile assessio-prod  describe-instances --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==\`Name\`] | [0].Value,PublicDnsName, PrivateIpAddress]' --output table"
+#alias aws-assessio-instances="aws ec2 --profile assessio-prod  describe-instances --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==`Name`] | [0].Value,PublicDnsName, PrivateIpAddress]' --output table"
+alias aws-rds-instances="aws rds --profile assessio-prod describe-db-instances --query 'DBInstances[*].[DBInstanceIdentifier,Endpoint.Address]' --output table"
+
 function ec2ssh(){
 	ssh -i ~/.ssh/adecco_key.pem ec2-user@$1
+}
+function awsssh(){
+	ssh -A -i ~/.ssh/assessio/server_one $1
+}
+function aws-tunnel-rds(){
+	# 1: rds dns
+	# 2: nat dns
+	ssh -N -L 3307:$1:3306 ubuntu@$2
 }
