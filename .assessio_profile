@@ -1,8 +1,8 @@
 # EXPORTS
 export ASSESSIO_ROOT="/Users/leon/dev/assessio"
-export ASSESSIO_FE="$ASSESSIO_ROOT/frontend"
-export ASSESSIO_BE="$ASSESSIO_ROOT/backend"
-export ASSESSIO_SELENIUM="$ASSESSIO_FE/ascend-selenium"
+export ASSESSIO_FE="$ASSESSIO_ROOT/frontend/silversurfer-frontend"
+export ASSESSIO_BE="$ASSESSIO_ROOT/backend/silversurfer-backend"
+export ASSESSIO_SELENIUM="$ASSESSIO_FE/protractor"
 
 # alias
 alias cdass="cd $ASSESSIO_ROOT"
@@ -10,7 +10,7 @@ alias cdbe="cd $ASSESSIO_BE"
 alias cdfe="cd $ASSESSIO_FE"
 alias cdng="cd $ASSESSIO_FE/silversurfer-frontend"
 #alias cdsel="cd $ASSESSIO_SELENIUM"
-alias cdsel="cd $ASSESSIO_FE/silversurfer-frontend/protractor"
+alias cdsel="cd $ASSESSIO_FE/protractor"
 # Reload env variables
 alias update-env-vars="grep -E "^setenv" /etc/launchd.conf | xargs -t -L 1 launchctl"
 
@@ -34,7 +34,8 @@ alias aws-adecco-status="aws ec2 describe-instances --output table --region eu-w
 alias aws-assessio-instances="aws ec2 --profile assessio-prod  describe-instances --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==\`Name\`] | [0].Value,PublicDnsName, PrivateIpAddress]' --output table"
 #alias aws-assessio-instances="aws ec2 --profile assessio-prod  describe-instances --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==`Name`] | [0].Value,PublicDnsName, PrivateIpAddress]' --output table"
 alias aws-rds-instances="aws rds --profile assessio-prod describe-db-instances --query 'DBInstances[*].[DBInstanceIdentifier,Endpoint.Address]' --output table"
-
+alias report-ssh-tunnel="ssh -o 'StrictHostKeyChecking no' -N -L 1337:10.1.22.252:80 ubuntu@ec2-54-77-138-1.eu-west-1.compute.amazonaws.com"
+alias start-ascend="cdass && ./start_ascend.sh  && cdfe && grunt server-all"
 function ec2ssh(){
 	ssh -i ~/.ssh/adecco_key.pem ec2-user@$1
 }

@@ -2,6 +2,7 @@
 alias rz="source ~/.zshrc"
 alias ez="vim ~/.zshrc"
 alias eza="vim ~/.aliases"
+alias ezv="vim ~/.vimrc"
 alias ezf="vim ~/.functions"
 alias eznf="vim ~/.nyps_functions"
 alias ezp="vim ~/.assessio_profile"
