@@ -47,8 +47,8 @@ source $ZSH/oh-my-zsh.sh
 if [ -f ~/.exports ]; then
     . ~/.exports
 fi
-if [ -f ~/.nyps_profile ]; then
-    . ~/.assessio_profile
+if [ -f ~/.postkod_profile ]; then
+    . ~/.postkod_profile
 fi
 
 if [ -f ~/.aliases ]; then

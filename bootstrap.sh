@@ -4,7 +4,7 @@
 dir=~/dotfiles                    # dotfiles directory
 olddir=~/dotfiles_old             # old dotfiles backup directory
 # list of files/folders to symlink in homedir
-files=".zshrc .vimrc .vim .aliases .exports .functions .assessio_profile .oh-my-zsh/themes/agnoster-leon.zsh-theme"
+files=".zshrc .vimrc .vim .aliases .exports .functions .postkod_profile .oh-my-zsh/themes/agnoster-leon.zsh-theme"
 
 ##########
 
@@ -26,5 +26,7 @@ for file in $files; do
 	ln -s $dir/$file ~/$file
 done
 
+mkdir -p ~/.vim/swaps
+mkdir -p ~/.vim/backups
 source ~/.zshrc
 source ~/.vimrc

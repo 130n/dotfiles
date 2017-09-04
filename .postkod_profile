@@ -1,0 +1,5 @@
+# EXPORTS
+export POSTKOD_ROOT="/Users/leohen/Projects"
+
+# alias
+alias cdpk="cd $POSTKOD_ROOT"

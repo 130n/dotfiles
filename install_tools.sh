@@ -10,4 +10,9 @@ brew install thefuck archey fpp node tpp wget git htop-osx sl zsh prettyping mav
 gem install bropages
 
 brew install node
+brew update
+brew cask install java
 npm install npm -g
+
+mkdir -p ~/.vim/autoload ~/.vim/bundle && \
+	curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
