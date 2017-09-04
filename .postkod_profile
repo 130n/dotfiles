@@ -1,5 +1,6 @@
 # EXPORTS
 export POSTKOD_ROOT="/Users/leohen/Projects"
+export JAVA_TOOL_OPTIONS="-Djavax.net.ssl.trustStore=/novamedia/tools/keystore/cacerts.jks"
 
 # alias
 alias cdpk="cd $POSTKOD_ROOT"
