@@ -26,3 +26,7 @@ alias gcleean_branches='git branch --merged develop | grep "feature" | grep -v "
 alias java7="export JAVA_HOME=$JAVA7_HOME"
 alias java8="export JAVA_HOME=$JAVA8_HOME"
 
+# macos
+alias iphone="/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app/Contents/MacOS/Simulator"
+alias iphone-id="/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app/Contents/MacOS/Simulator -CurrentDeviceUDID"
+alias list-iphones="xcrun simctl list devices"

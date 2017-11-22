@@ -1,6 +1,39 @@
 # EXPORTS
 export POSTKOD_ROOT="/Users/leohen/Projects"
+export JAVA_HOME="/Library/Java/Home/"
 export JAVA_TOOL_OPTIONS="-Djavax.net.ssl.trustStore=/novamedia/tools/keystore/cacerts.jks"
+export M2_HOME=/usr/local/Cellar/maven/3.5.0/libexec
+export PATH=~/bin:${M2_HOME}/bin:${PATH}:/novamedia/tools/apache-activemq-5.9.0/bin
+export MAVEN_OPTS='-Xms256m -Xmx1024m -Djavax.net.ssl.trustStore=/novamedia/tools/keystore/cacerts.jks'
 
 # alias
-alias cdpk="cd $POSTKOD_ROOT"
+alias cdpr="cd $POSTKOD_ROOT"
+alias cdpk="cd $POSTKOD_ROOT/postkodlotteriet.se/"
+alias cdsv="cd $POSTKOD_ROOT/sitevision-server/"
+alias cdgk="cd $POSTKOD_ROOT/gatekeeper-service"
+alias dev="cd ~/dev"
+
+
+# sitevision
+alias old-acceptance-ssh="ssh gseasdatpwbs001";
+alias old-dev-ssh="ssh gseasddvpwbs001";
+alias sitevision-dev-ssh="ssh -K www.sitevision.dev";
+
+# ssh
+alias svdev="ssh -K www.sitevision.dev"
+alias dp="ssh -K prdply003213.se.novamedia.com"
+
+# appended
+#export MAVEN_OPTS='-XX:MaxPermSize=512m -Xms384m -Xmx1024m'
+#export PATH=/novamedia/tools/apache-maven-3.0.4/bin:${PATH}
+# export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/
+export ANT_HOME=/novamedia/tools/apache-ant-1.8.2 
+export PATH=${ANT_HOME}/bin:${PATH}
+export ANT_OPTS='-Xmx384m -XX:MaxPermSize=256m' 
+export ORACLE_HOME=/novamedia/tools/Oracle_10204Client_MAC_X86/ohome
+export DYLD_LIBRARY_PATH=$ORACLE_HOME/lib
+export TNS_ADMIN=$HOME
+export PATH=$PATH:$ORACLE_HOME/bin
+
+# run
+alias iphone6="/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app/Contents/MacOS/Simulator -CurrentDeviceUDID DB9E8682-0475-4276-AF8F-10951249DF50"

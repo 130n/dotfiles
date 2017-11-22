@@ -64,6 +64,10 @@ prompt_context() {
     prompt_segment black default "%(!.%{%F{yellow}%}.)$USER@%m"
   fi
 }
+prompt_time() {
+    DATE=$( date +"[%H:%M:%S]" )
+    prompt_segment white default "$DATE"
+}
 
 # Git: branch/detached head, dirty status
 prompt_git() {
@@ -169,6 +173,7 @@ build_prompt() {
   RETVAL=$?
   prompt_status
   prompt_virtualenv
+  prompt_time
   prompt_context
   prompt_dir
   prompt_git

@@ -1,4 +1,6 @@
 # Path to your oh-my-zsh installation.
+LANG="en_US.UTF-8"
+LC_ALL="en_US.UTF-8"
 export ZSH=${HOME}/.oh-my-zsh
 #PATH=/usr/local/bin:$PATH
 #PATH=$HOME/bin:$PATH
@@ -62,9 +64,10 @@ if [ -f ~/.functions ]; then
 fi
 
 # run startup shizzle
-eval $(thefuck --alias)
-archey -c
+#eval $(thefuck --alias)
+#archey -c
 
+ssh-add -K /Users/leohen/.ssh/id_rsa > /dev/null 2>&1
 test -e ${HOME}/.iterm2_shell_integration.zsh && source ${HOME}/.iterm2_shell_integration.zsh
 export NVM_DIR="$HOME/.nvm"
   . "/usr/local/opt/nvm/nvm.sh"

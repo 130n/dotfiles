@@ -1,3 +1,4 @@
+#!/bin/bash
 # FileSearch
 function f() { 
 	find . -iname "*$1*" ${@:2}
@@ -8,4 +9,13 @@ function r() {
 function emourl() {
 	echo 'curl -H "Content-Type: application/octet-stream" -v -X POST localhost:8888/emotions --data-binary @$1 -o /Users/leohen/Desktop/new-image.jpg'
 	curl -H "Content-Type: application/octet-stream" -v -X POST localhost:8888/emotions --data-binary @$1 -o /Users/leohen/Desktop/new-image.jpg
+}
+
+function select-iphone() {
+	echo "iPhone model: "
+	read iphonemodel
+	greppattern="iPhone $iphonemodel "
+	line=xcrun simctl list devices | grep $greppattern
+	echo "---"
+	echo $line
 }
