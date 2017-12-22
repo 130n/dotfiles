@@ -2,7 +2,7 @@
 export POSTKOD_ROOT="/Users/leohen/Projects"
 export JAVA_HOME="/Library/Java/Home/"
 export JAVA_TOOL_OPTIONS="-Djavax.net.ssl.trustStore=/novamedia/tools/keystore/cacerts.jks"
-export M2_HOME=/usr/local/Cellar/maven/3.5.0/libexec
+export M2_HOME=/usr/local/Cellar/maven/3.5.2/libexec
 export PATH=~/bin:${M2_HOME}/bin:${PATH}:/novamedia/tools/apache-activemq-5.9.0/bin
 export MAVEN_OPTS='-Xms256m -Xmx1024m -Djavax.net.ssl.trustStore=/novamedia/tools/keystore/cacerts.jks'
 

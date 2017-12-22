@@ -56,18 +56,15 @@ fi
 if [ -f ~/.aliases ]; then
     . ~/.aliases
 fi
-#if [ -f ~/.nyps_functions ]; then
-#    . ~/.nyps_functions
-#fi
 if [ -f ~/.functions ]; then
     . ~/.functions
 fi
 
 # run startup shizzle
 #eval $(thefuck --alias)
-#archey -c
+archey -c
 
-ssh-add -K /Users/leohen/.ssh/id_rsa > /dev/null 2>&1
+ssh-add -K ~/.ssh/id_rsa > /dev/null 2>&1
 test -e ${HOME}/.iterm2_shell_integration.zsh && source ${HOME}/.iterm2_shell_integration.zsh
 export NVM_DIR="$HOME/.nvm"
-  . "/usr/local/opt/nvm/nvm.sh"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
