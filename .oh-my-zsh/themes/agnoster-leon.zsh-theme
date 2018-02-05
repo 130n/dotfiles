@@ -65,8 +65,8 @@ prompt_context() {
   fi
 }
 prompt_time() {
-    DATE=$( date +"[%H:%M:%S]" )
-    prompt_segment white default "$DATE"
+    DATE=$( date +"%H:%M:%S" )
+    prompt_segment black default "$DATE"
 }
 
 # Git: branch/detached head, dirty status
@@ -174,7 +174,7 @@ build_prompt() {
   prompt_status
   prompt_virtualenv
   prompt_time
-  prompt_context
+#prompt_context
   prompt_dir
   prompt_git
   prompt_hg

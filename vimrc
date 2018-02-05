@@ -3,11 +3,7 @@ if 1
   execute 'source' fnamemodify(expand('<sfile>'), ':h').'/config/main.vim'
 endif
 " vim:set et sw=2
-
-
-" Save a file as root (,W)
 noremap <leader>W :w !sudo tee % > /dev/null<CR>
-
 " Disable arrows
 nnoremap <up> <nop>
 nnoremap <down> <nop>
@@ -29,6 +25,3 @@ nnoremap <C-H> <C-W><C-H>
 
 " jj to normalmode
 inoremap jj <Esc>
-" Show “invisible” characters
-set lcs=tab:▸\ ,trail:·,eol:¬,nbsp:_
-set list

@@ -21,6 +21,9 @@ alias glog="git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%
 alias gr="git pull --rebase"
 alias gs="git status"
 alias gcleean_branches='git branch --merged develop | grep "feature" | grep -v "\*" | xargs -n 1 git branch -d'
+alias git-stale="git fetch -p && git branch -vv | grep ': gone' | awk '{print \$1;}'"
+alias git-remove-stale="git-stale | xargs git branch -d"
+alias git-remove-stale-force="git-stale | xargs git branch -D"
 
 #Java
 alias java7="export JAVA_HOME=$JAVA7_HOME"
