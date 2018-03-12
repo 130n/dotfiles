@@ -7,7 +7,8 @@ alias ezf="vim ~/.functions"
 alias ezp="vim ~/.postkod_profile"
 alias bootstrap-dotfiles="~/dotfiles/bootstrap.sh"
 alias ping="prettyping"
-alias log="date >> ~/dotfiles/log.txt && echo '' >> ~/dotfiles/log.txt && vim + ~/dotfiles/log.txt"
+alias savelog="cd ~/dotfiles && git add log.md && git commit -m\"Save log\" && git push && cd -"
+alias log="echo '' >> ~/dotfiles/log.md && date >> ~/dotfiles/log.md && echo '' >> ~/dotfiles/log.md && vim + ~/dotfiles/log.md"
 
 # Shell stuff
 alias ll="ls -l"
