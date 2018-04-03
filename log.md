@@ -55,3 +55,16 @@ Mon Mar 26 12:33:10 CEST 2018
 - had backlog review to plan the coming weeks - this short week before easter and the next one where ludmila, ricard and yecid will be away
 - after pull request review from ludmila I needed to fix filtering of scratchsubscription transactions and add tests
 
+
+Tue Mar 27 14:49:26 CEST 2018
+- bug in replay: can relay unscratched tickets - disable button for status P = in progress. Switch badge to btn to get disable behavior.
+- meeting with poc-boys, how to move forward with rebel nd birds design stuff
+
+Tue Apr  3 19:11:22 CEST 2018
+- chaotic day:
+- joined linda for a telephone meeting with nyx, we will look into using Channel when creating recurring deposits to distinguish which are user initiated and which are subscriptions
+- andreas questioned me about sitevision deployment stuff. answered questions instead of lunch.
+- skrapyra not working in dev - looked into it with jens and linda. need to fix it in database and add possibility to edit the period table from pokus/skrapyra admin
+- looked at release schedule with iulia.
+- ludmila couldn't deploy the scratch subscription service in acc due to incorrect password. Need to get the correct one from either daniel, jacob or uffe. Sent them a mail, is hopefully solved once i get here tomorrow
+
