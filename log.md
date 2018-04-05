@@ -68,3 +68,27 @@ Tue Apr  3 19:11:22 CEST 2018
 - looked at release schedule with iulia.
 - ludmila couldn't deploy the scratch subscription service in acc due to incorrect password. Need to get the correct one from either daniel, jacob or uffe. Sent them a mail, is hopefully solved once i get here tomorrow
 
+
+Tue Apr  3 19:17:25 CEST 2018
+- created two pullrequests for bugs in frontend. Small fixes but took some time to do it RIGHT (tests, remove unfixed lint errors etc)
+- merged hargnes storybook PR after fiddling with the eslint config to add storybook stuff to the "allowed to use devDependencies" list
+
+Wed Apr  4 19:57:45 CEST 2018
+- continued chaos
+- gave the failing transaction history tests in gatekeeper another go but rn into same trouble with wiremocked queryparams
+- Got access to hiera/puppet, forked and PRd in new password for scratchsubscription in ACC
+- Guesstimated hours worked on OLG in march for oliver
+- Started to track down issues with microservices to be released: POSTGRES migration, Pact tests, int/unit tests. Got it working in acc (dev only runs postgres now)
+
+Thu Apr  5 09:42:59 CEST 2018
+- todays plan: get help for transactionhistory test and hopefully fix it, create release branches for microservices, create releasebranches for frontend
+
+Thu Apr  5 19:59:27 CEST 2018
+- no fix for queryparam but found a workaround instead.
+- fixing tests and builds of the microservices to be released. Merged a couple of PRs into dev.
+- created release branches for backend, want to get two PRs into frontend before releasebranching.
+- fixing code review comments deteriorated into JS and eslint fest
+- count eslint errors by file : npm run eslint -- -f compact | grep $(pwd) | sed -E  's/(.*):(.*)/\1/' | uniq -c | sort -k2nr | awk '{printf("%s %s \n",$2,$1)}END{print}'
+
+Thu Apr  5 20:10:06 CEST 2018
+- not working fully: npm run eslint -- -f compact | grep $(pwd) | sed -E 's?(.*):(.*)?\1?' | uniq -c | sort -k2nr | awk '{printf("%s %s \n",$2,$1)}END{print}'
