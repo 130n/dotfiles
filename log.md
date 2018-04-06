@@ -92,3 +92,6 @@ Thu Apr  5 19:59:27 CEST 2018
 
 Thu Apr  5 20:10:06 CEST 2018
 - not working fully: npm run eslint -- -f compact | grep $(pwd) | sed -E 's?(.*):(.*)?\1?' | uniq -c | sort -k2nr | awk '{printf("%s %s \n",$2,$1)}END{print}'
+
+Fri Apr  6 18:06:44 CEST 2018
+- released frontend, started looking into seleniumtests which i realized have been failing for the last month or so
