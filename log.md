@@ -148,7 +148,7 @@ Mycket redirectande etc. Mina sidor länken behöver fixas - det visade sig att 
 Thu May  3 17:51:34 CEST 2018
 Drama med www. domäner. Vi stödjer båda vilket leder till att vissa skickas mellan www och utan vid diverse redirects - vilket ger intrycket att man är utloggad.
 Efter flera omgångar av störning och kontextswitching så skrev jag ihop en menlös kodrad som kan användas för att krasha sitevision:
-#   var sfcc = String["fromCharCode'CodeCharfrom".split("'")[0]], kill, asd=1 && eval('fuck'.split('').map((a, v) => (v%2) ? v-1 ? sfcc(116) : sfcc((''+v)+20) : v ? sfcc(1+v*52) : ''+(''+kill).split('d')[1][0]).join('')+('('+')'));
+    var sfcc = String["fromCharCode'CodeCharfrom".split("'")[0]], kill, asd=1 && eval('fuck'.split('').map((a, v) => (v%2) ? v-1 ? sfcc(116) : sfcc((''+v)+20) : v ? sfcc(1+v*52) : ''+(''+kill).split('d')[1][0]).join('')+('('+')'));
 
 
 Fri May  4 09:42:36 CEST 2018
@@ -164,3 +164,23 @@ working on correct ticket data for presentation of last weeks winnings. Outstand
 - getting current publishing playing round from general plan. previous round will also be necessary but can in all cases except january be solved by taking playinground -1 (201805-1 for example). Does this work for end of year? Do i need to submit both 201712 and 201713 to be sure?
 - should the draw-schedule be based on current time or only on days?
 
+Mon May 21 10:07:21 CEST 2018
+- CorrectTicket: will need to save data on customers checked tickets and last time they did so.
+
+Tue May 22 15:20:18 CEST 2018
+- Problem: draws repeat every week but wins seem tied to draw instead of publication - as such a win in weekly draw at end of previous week can't be distinguished from same draw in current week (eg it's tuesday and we get last 7 days with Veckovinst for Wed+Thurs last week)
+- Realized that the connection between draw and publishDate wasn't available from draw-service API. After bringing this up to WL team I realized that it was preferrable to always get the results for an actual calendar week instead of the last 7 days.
+
+Mon May 28 15:55:47 CEST 2018
+Save gulptasks for testing the release/deploy:
+    gulp.task('create-release', done => runSequence('bundle-sitevision-files', 'zip', done));
+    gulp.task('fake-deploy-release', done => runSequence('init-config', 'init-version', 'extract-version', 'deploy-version', done));
+
+Tue Jun  5 16:56:07 CEST 2018
+Work on Check tickets has been going slow due to constant interruptions and new problems out of left field.
+After getting a bit stuck on some SPL integration tests and also worrying over if it even belonged to SPL in the first place I decided that a new microservice would be the better option.
+Stuff that have been done:
+- get rickard to create github repo, because I dod not have permissions to
+- request DB from uffe
+- update hiera fork and start adding node conf for DEV environment (awaiting db password before PR)
+- Add JsonBind annotation to use in jdbi and recreate Dao
