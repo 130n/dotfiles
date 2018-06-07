@@ -184,3 +184,6 @@ Stuff that have been done:
 - request DB from uffe
 - update hiera fork and start adding node conf for DEV environment (awaiting db password before PR)
 - Add JsonBind annotation to use in jdbi and recreate Dao
+
+Thu Jun  7 11:15:07 CEST 2018
+- Needed for MS: encrypt passwords and add to dev, at, stage and prod configs in Puppet/hiera. Add TC jobs. Add what is needed to zdeploy.
