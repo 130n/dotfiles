@@ -187,3 +187,12 @@ Stuff that have been done:
 
 Thu Jun  7 11:15:07 CEST 2018
 - Needed for MS: encrypt passwords and add to dev, at, stage and prod configs in Puppet/hiera. Add TC jobs. Add what is needed to zdeploy.
+
+Fri Jun  8 14:09:53 CEST 2018
+- used eyaml to encryp cacs_db passwords. pkcs7 doesn't seem to generate same encryption every time - fishy. Investigate closer when deploying to dev (if it fails).
+- created TC job based on premievalet, add to zdeploy config for dev and created PR for hiera conf
+
+Thu Sep  6 16:04:34 CEST 2018
+- been a while - lots of things to do so I need to keep track of them in my head
+- rätta lott didn't save the checked tickets correctly. After fixing this the GET request still doesn't mark results as checked. Check if problem is with logic or in DTOs
+- churn flow needs to be completed - post of churn reason from gatekeeper and test of resource. investigate if next grannyra is readily available from general-plan.
