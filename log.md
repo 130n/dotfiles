@@ -196,3 +196,12 @@ Thu Sep  6 16:04:34 CEST 2018
 - been a while - lots of things to do so I need to keep track of them in my head
 - rätta lott didn't save the checked tickets correctly. After fixing this the GET request still doesn't mark results as checked. Check if problem is with logic or in DTOs
 - churn flow needs to be completed - post of churn reason from gatekeeper and test of resource. investigate if next grannyra is readily available from general-plan.
+
+Thu Sep  6 18:22:39 CEST 2018
+- tomorrow: get help to run gatekeeper locally against ACC to debug correct ticket
+
+Fri Sep 14 11:32:44 CEST 2018
+- fixing last  parts of rätta lott. add product, code and if it has been paid out.
+
+Fri Oct 19 14:26:35 CEST 2018
+had interview with guy. started looking at webapps but got dragged into robinson list bug.
