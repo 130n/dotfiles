@@ -8,8 +8,9 @@ export MAVEN_OPTS='-Xms256m -Xmx1024m -Djavax.net.ssl.trustStore=/novamedia/tool
 
 # alias
 alias cdpr="cd $POSTKOD_ROOT"
-alias cdpk="cd $POSTKOD_ROOT/postkodlotteriet.se/"
-alias cdsv="cd $POSTKOD_ROOT/sitevision-server/"
+alias cdfe="cd $POSTKOD_ROOT/frontend"
+alias cdpk="cd $POSTKOD_ROOT/frontend/postkodlotteriet.se/"
+alias cdsv="cd $POSTKOD_ROOT/frontend/sitevision-server/"
 alias cdgk="cd $POSTKOD_ROOT/gatekeeper-service"
 alias dev="cd ~/dev"
 
@@ -37,3 +38,31 @@ export PATH=$PATH:$ORACLE_HOME/bin
 
 # run
 alias iphone6="/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app/Contents/MacOS/Simulator -CurrentDeviceUDID DB9E8682-0475-4276-AF8F-10951249DF50"
+
+# ssh/scp
+ssh () {
+  /usr/bin/ssh -K "$@"
+}
+scp () {
+  /usr/bin/scp -o GSSAPIAuthentication=yes "$@"
+}
+_complete_ssh_hosts ()
+{
+        COMPREPLY=()
+        cur="${COMP_WORDS[COMP_CWORD]}"
+        comp_ssh_hosts=`cat ~/.ssh/known_hosts | \
+                        cut -f 1 -d ' ' | \
+                        sed -e s/,.*//g | \
+                        grep -v ^# | \
+                        uniq | \
+                        grep -v "\[" ;
+                cat ~/.ssh/config | \
+                        grep "^Host " | \
+                        awk '{print $2}'
+                `
+        COMPREPLY=( $(compgen -W "${comp_ssh_hosts}" -- $cur))
+        return 0
+}
+# complete -F _complete_ssh_hosts ssh
+export LC_ALL=en_US.UTF-8
+export LC_CTYPE=${LC_ALL}
