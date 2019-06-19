@@ -1,6 +1,7 @@
 # EXPORTS
 export POSTKOD_ROOT="/Users/leohen/Projects"
 export JAVA_HOME="/Library/Java/Home/"
+export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_162.jdk/Contents/Home"
 export JAVA_TOOL_OPTIONS="-Djavax.net.ssl.trustStore=/novamedia/tools/keystore/cacerts.jks"
 export M2_HOME=/usr/local/Cellar/maven/3.5.2/libexec
 export PATH=~/bin:${M2_HOME}/bin:${PATH}:/novamedia/tools/apache-activemq-5.9.0/bin
@@ -22,7 +23,8 @@ alias sitevision-dev-ssh="ssh -K www.sitevision.dev";
 
 # ssh
 alias svdev="ssh -K www.sitevision.dev"
-alias dp="ssh -K prdply003213.se.novamedia.com"
+alias dp_old="ssh -K prdply003213.se.novamedia.com"
+alias dp="ssh -K prdply007211.se.novamedia.com"
 
 # appended
 #export MAVEN_OPTS='-XX:MaxPermSize=512m -Xms384m -Xmx1024m'

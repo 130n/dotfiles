@@ -31,3 +31,6 @@ alias java8="export JAVA_HOME=$JAVA8_HOME"
 alias iphone="/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app/Contents/MacOS/Simulator"
 alias iphone-id="/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app/Contents/MacOS/Simulator -CurrentDeviceUDID"
 alias list-iphones="xcrun simctl list devices"
+
+# docker
+alias dockerkill="docker ps -q | xargs docker kill"

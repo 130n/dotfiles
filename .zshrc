@@ -1,10 +1,9 @@
+# Uncomment to profile startup time (same for last line
+# zmodload zsh/zprof
 # Path to your oh-my-zsh installation.
 LANG="en_US.UTF-8"
 LC_ALL="en_US.UTF-8"
 export ZSH=${HOME}/.oh-my-zsh
-#PATH=/usr/local/bin:$PATH
-#PATH=$HOME/bin:$PATH
-#export PATH
 
 # Remove user@machine
 #DEFAULT_USER=`whoami`
@@ -19,7 +18,6 @@ ZSH_THEME="agnoster-leon"
 # export UPDATE_ZSH_DAYS=13
 
 DISABLE_AUTO_TITLE="true"
-
 COMPLETION_WAITING_DOTS="true"
 
 # Uncomment the following line if you want to disable marking untracked files
@@ -27,8 +25,6 @@ COMPLETION_WAITING_DOTS="true"
 # much, much faster.
 # DISABLE_UNTRACKED_FILES_DIRTY="true"
 
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
 # The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
 HIST_STAMPS="yyyy-mm-dd"
 
@@ -49,7 +45,6 @@ plugins=(
 )
 
 # User configuration
-
 source $ZSH/oh-my-zsh.sh
 
 # Personal files
@@ -59,19 +54,23 @@ fi
 if [ -f ~/.postkod_profile ]; then
     . ~/.postkod_profile
 fi
-
 if [ -f ~/.aliases ]; then
     . ~/.aliases
 fi
 if [ -f ~/.functions ]; then
     . ~/.functions
 fi
+if [ -f ~/.nvm_init ]; then
+    . ~/.nvm_init
+fi
 
 # run startup shizzle
 #eval $(thefuck --alias)
-archey -o
+#archey -o
 
-#ssh-add -K /Users/leohen/.ssh/id_rsa > /dev/null 2>&1
+ssh-add -K /Users/leohen/.ssh/id_rsa > /dev/null 2>&1
 test -e ${HOME}/.iterm2_shell_integration.zsh && source ${HOME}/.iterm2_shell_integration.zsh
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
+# Uncomment to profile startup time (same for first line)
+# zprof

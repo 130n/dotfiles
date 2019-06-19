@@ -205,3 +205,8 @@ Fri Sep 14 11:32:44 CEST 2018
 
 Fri Oct 19 14:26:35 CEST 2018
 had interview with guy. started looking at webapps but got dragged into robinson list bug.
+
+Tue Mar 26 11:49:00 CET 2019
+todo:
+- kolla om det finns glapp mellan publishingPlaingRounds i generalplanen
+- testa latestPublishingDate för att visa om dagens publicering går att rätta
