@@ -13,6 +13,9 @@ alias log="echo '' >> ~/dotfiles/log.md && date >> ~/dotfiles/log.md && echo '' 
 # Shell stuff
 alias ll="ls -l"
 alias la="ls -la"
+
+#ssh
+alias sshadd="ssh-add -K ~/.ssh/id_rsa"
  
 # Git
 # in addition to https://github.com/robbyrussell/oh-my-zsh/wiki/Cheatsheet#git
@@ -34,3 +37,5 @@ alias list-iphones="xcrun simctl list devices"
 
 # docker
 alias dockerkill="docker ps -q | xargs docker kill"
+alias run-mock-json-server="docker run -t -i --name mock-json-server -v $(pwd)/data.json:/usr/src/app/data.json -p 8000:8000 ajoelpod/mock-json-server"
+alias start-mock-json-server="docker restart mock-json-server"
