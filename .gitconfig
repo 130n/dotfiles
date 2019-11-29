@@ -1,0 +1,10 @@
+[user]
+	name = Leon Hennings
+	email = leon.hennings@postkodlotteriet.se
+[alias]
+	pushf = push --force-with-lease
+[core]
+	autocrlf = input
+[merge "npm-merge-driver"]
+	name = automatically merge npm lockfiles
+	driver = npx npm-merge-driver merge %A %O %B %P
