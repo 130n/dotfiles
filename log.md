@@ -210,3 +210,10 @@ Tue Mar 26 11:49:00 CET 2019
 todo:
 - kolla om det finns glapp mellan publishingPlaingRounds i generalplanen
 - testa latestPublishingDate för att visa om dagens publicering går att rätta
+
+Fri Dec  6 13:55:30 CET 2019
+Start working on external time tracking.
+Two input sources: files from external learning plattforms and maual input for extra curricular activities
+TotalEffort is calculated in frontend at the moment.
+Possibly: calculate totaleffort in backend and separate from inventory items
+Other possibility: Add external time as a "ghost" inventory item.

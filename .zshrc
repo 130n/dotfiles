@@ -51,8 +51,8 @@ source $ZSH/oh-my-zsh.sh
 if [ -f ~/.exports ]; then
     . ~/.exports
 fi
-if [ -f ~/.postkod_profile ]; then
-    . ~/.postkod_profile
+if [ -f ~/.collegial_profile ]; then
+    . ~/.collegial_profile
 fi
 if [ -f ~/.aliases ]; then
     . ~/.aliases
