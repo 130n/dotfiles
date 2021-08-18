@@ -1,10 +1,13 @@
+# This is Git's per-user configuration file.
 [user]
+# Please adapt and uncomment the following lines:
 	name = Leon Hennings
-	email = leon.hennings@postkodlotteriet.se
-[alias]
-	pushf = push --force-with-lease
+	email = leon.hennings@gmail.com
+	signingkey = 9DAEFA9ABE80654B94F98951A8EEA0101FD70A3F
 [core]
 	autocrlf = input
-[merge "npm-merge-driver"]
-	name = automatically merge npm lockfiles
-	driver = npx npm-merge-driver merge %A %O %B %P
+[alias]
+	pushf = push --force-with-lease
+	pushc = push -u origin HEAD
+[url "git@github.com:"]
+	insteadOf = https://github.com/

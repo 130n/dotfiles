@@ -51,14 +51,14 @@ source $ZSH/oh-my-zsh.sh
 if [ -f ~/.exports ]; then
     . ~/.exports
 fi
-if [ -f ~/.collegial_profile ]; then
-    . ~/.collegial_profile
-fi
 if [ -f ~/.aliases ]; then
     . ~/.aliases
 fi
 if [ -f ~/.functions ]; then
     . ~/.functions
+fi
+if [ -f ~/.work_profile ]; then
+    . ~/.work_profile
 fi
 if [ -f ~/.nvm_init ]; then
     . ~/.nvm_init
@@ -70,7 +70,5 @@ fi
 
 #ssh-add -K /Users/leohen/.ssh/id_rsa > /dev/null 2>&1
 test -e ${HOME}/.iterm2_shell_integration.zsh && source ${HOME}/.iterm2_shell_integration.zsh
-# export NVM_DIR="$HOME/.nvm"
-# [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
 # Uncomment to profile startup time (same for first line)
 # zprof
