@@ -4,9 +4,10 @@
 alias rz="source ~/.zshrc"
 alias ez="vim ~/.zshrc"
 alias eza="vim ~/.aliases"
+alias eze="vim ~/.exports"
 alias ezv="vim ~/.vimrc"
 alias ezf="vim ~/.functions"
-alias ezp="vim ~/.collegial_profile"
+alias ezp="vim ~/.sbabrc"
 alias bootstrap-dotfiles="~/dotfiles/bootstrap.sh"
 
 # Dear diary
@@ -25,6 +26,9 @@ alias sshadd="ssh-add -K ~/.ssh/id_rsa"
 # in addition to https://github.com/robbyrussell/oh-my-zsh/wiki/Cheatsheet#git
 alias glog="git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset' --abbrev-commit"
 alias gs="git status"
+alias gcd="git checkout dev"
+alias gstup="git stash && git pull && git stash pop"
+alias gclear="git checkout -- ."
 alias gcleean_branches='git branch --merged develop | grep "feature" | grep -v "\*" | xargs -n 1 git branch -d'
 alias git-stale="git fetch -p && git branch -vv | grep ': gone' | awk '{print \$1;}'"
 alias git-remove-stale="git-stale | xargs git branch -d"
