@@ -79,8 +79,6 @@ source ~/.aliases
 $DEBUG && clocknow && echo "aliases"
 source ~/.functions
 $DEBUG && clocknow && echo "functions"
-#source ~/.nvm_init
-#$DEBUG && clocknow && echo "nvm_init"
 ssh-add -K $HOME/.ssh/id_rsa > /dev/null 2>&1
 $DEBUG && clocknow && echo "ssh add"
 

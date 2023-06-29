@@ -1,0 +1,134 @@
+# SBAB-config & aliases 2023-06-29
+#
+alias toggle-sbab='echo "WORKMODE=$((1-WORKMODE))" > ~/.workmode && source ~/.workmode && source ~/.sbabrc'
+
+if [ "$WORKMODE" = 0 ]
+then
+    unset http_proxy
+    unset HTTP_PROXY
+    unset https_proxy
+    unset HTTPS_PROXY
+    unset proxy
+    unset PROXY
+ 
+    unset no_proxy
+    unset NO_PROXY
+ 
+    unset CFG_HTTP_PROXY
+    unset CFG_HTTPS_PROXY
+    unset CFG_PROXY
+    unset CFG_NO_PROXY
+    unset NODE_EXTRA_CA_CERTS
+ 
+    npm config rm proxy
+    npm config rm https-proxy
+    yarn config delete proxy
+    yarn config delete httpsProxy
+    yarn config delete https-proxy
+    npm config delete registry
+    echo "NOT USING SBAB PROFILE!"
+else
+    export ALL_PROXY=http://fortiproxy.sbab.ad:8080
+
+    export HTTP_PROXY=$ALL_PROXY
+    export http_proxy=$ALL_PROXY
+    export HTTPS_PROXY=$ALL_PROXY
+    export https_proxy=$ALL_PROXY
+    export FTP_PROXY=$ALL_PROXY
+    export ftp_proxy=$ALL_PROXY
+    export RSYNC_PROXY=$ALL_PROXY
+    export rsync_proxy=$ALL_PROXY
+
+    export NO_PROXY_ALL=127.0.0.1,localhost,sbab.ad,sbab.se,api.sl.se
+    export no_proxy=$NO_PROXY_ALL
+    export NO_PROXY=$NO_PROXY_ALL
+
+    export CFG_HTTP_PROXY=$ALL_PROXY
+    export CFG_HTTPS_PROXY=$ALL_PROXY
+    export CFG_PROXY=$ALL_PROXY
+    export CFG_NO_PROXY=127.0.0.1,localhost,sbab.ad,sbab.se,booli.se
+    export NODE_EXTRA_CA_CERTS=/Users/lhen/dev/truststore/SBABBankRootCA1.pem
+
+    echo "USING SBAB PROFILE!"
+fi
+ 
+defaults write com.google.Chrome AuthNegotiateDelegateWhitelist "*.sbab.ad,*.sbab.se,banketten"
+defaults write com.google.Chrome AuthServerWhitelist "*.sbab.ad,*.sbab.se,banketten"
+alias ansiblectl='docker run -it --rm -v /Users/lhen/dev/ansible:/ansible nexus.common.sbab.se:18443/se.sbab/ansible-controller'
+
+alias kre-sys="docker run -t --rm --name kresys --env KRE_ENV='sys' --env SCREEN_SIZE=1920x1100x16 -p 7777:6900 kre:latest &"
+alias kre-acc="docker run -t --rm --name kreacc --env KRE_ENV='acc' --env SCREEN_SIZE=1920x1100x16 -p 8888:6900 kre:latest &"
+alias kre-stage="docker run -t --rm --name krestage --env KRE_ENV='stage' --env SCREEN_SIZE=1920x1100x16 -p 9999:6900 kre:latest &"
+alias kresys-make="cd ~/dev/dockerized-kre && make sys"
+alias kreacc-make="cd ~/dev/dockerized-kre && make acc"
+alias krestage-make="cd ~/dev/dockerized-kre && make stage"
+
+alias reset-pulsesecure="sudo launchctl unload -w /Library/LaunchDaemons/net.pulsesecure.AccessService.plist && sudo launchctl load -w /Library/LaunchDaemons/net.pulsesecure.AccessService.plist"
+
+alias kinitsa="kinit sa-lhen"
+alias jump="ssh -K SA-lhen@<redacted-jumpserver>"
+alias jumpora="ssh -K SA-lhen@<redacted-jumpserver>"
+alias init-rvm="source /Users/lhen/.rvm/scripts/rvm"
+
+generate-pdf() {
+	sbab_jwt=`token`
+  echo "Template "$1
+  echo "Data "$2
+  curl -X 'POST' \
+  'https://k8sproxy.stage.sbab.se/document-converter/generator/json?format=PDF' \
+  -H 'accept: */*' \
+  -H 'Client-Channel: WEB' \
+  -H 'Authorization: Bearer '$sbab_jwt \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'template=@'$1';type=application/vnd.openxmlformats-officedocument.wordprocessingml.document' \
+  -F 'jsonDataFile=@'$2';type=application/json' -o data_response.json \
+  && cat data_response.json | jq -r .data | base64 -d > generated.pdf && open generated.pdf
+}
+
+## START token script
+# Example alias to quickly generate token for a role
+# alias pauth='token sys_partner_info:bytkod'
+
+env=sys
+url="http://lb$env-intern.sbab.se:8888/partner-auth-service"
+scope=`echo "CLIENT INTERNAL PARTNER_INFO SCOPE_LOAN_READ SCOPE_ACCOUNT_READ USER ad-user" | sed "s/ /%2C/g"`
+user=microservice
+user=sys_mortgage_signing
+client=kredir
+
+function mock_token() {
+ curl -X GET "$url/v1/mockauth/mockraw?user_id=$user&rawscope=$scope&client_id=$client&ttl=28800&skill=*" -sb \
+  -H "accept: application/json"
+}
+
+function get_token() {
+ # End with the line feed 0x0A sequence \cZ (C-Z)
+ authorization_role=`echo -e "$@\cZ" | base64`
+
+ curl -s --location --request POST "$url/v1/auth/token" \
+  --header "Authorization: Basic $authorization_role" \
+  --header "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "grant_type=client_credentials"
+}
+
+function extract() {
+#echo $@
+ echo $@ | jq --raw-output .user_token
+}
+
+function token() {
+if [ $# -eq 0 ] ; then
+ extract `mock_token`
+else
+ extract `get_token "$1"`
+fi
+}
+## END token script
+
+# IS & vagrant vars
+export MODSECURITY_SOURCE="/Users/lhen/dev/modsecurity"
+export IS_DOMAIN_ROOT="/Users/lhen/dev/is-domain"
+
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+export PDFREACTOR_LICENSE_KEY=""
+
