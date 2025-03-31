@@ -18,7 +18,7 @@ $DEBUG && echo "debugging startup"
 ZSH_THEME="agnoster-leon"
 ZSH_THEME="gozilla"
 ZSH_THEME="miloshadzic"
-ZSH_THEME="leon-miloshadzic"
+#ZSH_THEME="leon-miloshadzic"
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
 
@@ -117,7 +117,7 @@ nvm() {
   lazy_load_nvm
   nvm $@
 }
-$DEBUG && clocknow && echo "nvm_init"
+#$DEBUG && clocknow && echo "nvm_init"
 
 $DEBUG && clocknow && echo "sbabrc"
 test -e ~/.sbabrc && source ~/.sbabrc
@@ -127,3 +127,11 @@ $DEBUG && clocknow && echo "DONE"
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
+
+# pnpm
+export PNPM_HOME="/Users/lhen/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

@@ -2,59 +2,11 @@
 #
 alias toggle-sbab='echo "WORKMODE=$((1-WORKMODE))" > ~/.workmode && source ~/.workmode && source ~/.sbabrc'
 
-if [ "$WORKMODE" = 0 ]
-then
-    unset http_proxy
-    unset HTTP_PROXY
-    unset https_proxy
-    unset HTTPS_PROXY
-    unset proxy
-    unset PROXY
- 
-    unset no_proxy
-    unset NO_PROXY
- 
-    unset CFG_HTTP_PROXY
-    unset CFG_HTTPS_PROXY
-    unset CFG_PROXY
-    unset CFG_NO_PROXY
-    unset NODE_EXTRA_CA_CERTS
- 
-    npm config rm proxy
-    npm config rm https-proxy
-    yarn config delete proxy
-    yarn config delete httpsProxy
-    yarn config delete https-proxy
-    npm config delete registry
-    echo "NOT USING SBAB PROFILE!"
-else
-    export ALL_PROXY=http://fortiproxy.sbab.ad:8080
+export NODE_EXTRA_CA_CERTS=/Users/lhen/certs/SBABBankRootCA1.pem
 
-    export HTTP_PROXY=$ALL_PROXY
-    export http_proxy=$ALL_PROXY
-    export HTTPS_PROXY=$ALL_PROXY
-    export https_proxy=$ALL_PROXY
-    export FTP_PROXY=$ALL_PROXY
-    export ftp_proxy=$ALL_PROXY
-    export RSYNC_PROXY=$ALL_PROXY
-    export rsync_proxy=$ALL_PROXY
-
-    export NO_PROXY_ALL=127.0.0.1,localhost,sbab.ad,sbab.se,api.sl.se
-    export no_proxy=$NO_PROXY_ALL
-    export NO_PROXY=$NO_PROXY_ALL
-
-    export CFG_HTTP_PROXY=$ALL_PROXY
-    export CFG_HTTPS_PROXY=$ALL_PROXY
-    export CFG_PROXY=$ALL_PROXY
-    export CFG_NO_PROXY=127.0.0.1,localhost,sbab.ad,sbab.se,booli.se
-    export NODE_EXTRA_CA_CERTS=/Users/lhen/dev/truststore/SBABBankRootCA1.pem
-
-    echo "USING SBAB PROFILE!"
-fi
- 
 defaults write com.google.Chrome AuthNegotiateDelegateWhitelist "*.sbab.ad,*.sbab.se,banketten"
 defaults write com.google.Chrome AuthServerWhitelist "*.sbab.ad,*.sbab.se,banketten"
-alias ansiblectl='docker run -it --rm -v /Users/lhen/dev/ansible:/ansible nexus.common.sbab.se:18443/se.sbab/ansible-controller'
+alias ansiblectl='docker run -it --rm -v /Users/lhen/dev/projects/ansible/talos_ansible:/ansible nexus.common.sbab.se:18443/se.sbab/ansible-controller'
 
 alias kre-sys="docker run -t --rm --name kresys --env KRE_ENV='sys' --env SCREEN_SIZE=1920x1100x16 -p 7777:6900 kre:latest &"
 alias kre-acc="docker run -t --rm --name kreacc --env KRE_ENV='acc' --env SCREEN_SIZE=1920x1100x16 -p 8888:6900 kre:latest &"
@@ -90,15 +42,22 @@ generate-pdf() {
 # alias pauth='token sys_partner_info:bytkod'
 
 env=sys
-url="http://lb$env-intern.sbab.se:8888/partner-auth-service"
-scope=`echo "CLIENT INTERNAL PARTNER_INFO SCOPE_LOAN_READ SCOPE_ACCOUNT_READ USER ad-user" | sed "s/ /%2C/g"`
+# scope=`echo "CLIENT  PARTNER_INFO SCOPE_LOAN_READ SCOPE_ACCOUNT_READ USER ad-user" | sed "s/ /%2C/g"`
+scope=`echo "SCOPE_ACCOUNT_WRITE USER SCOPE_LOAN_READ SCOPE_ACCOUNT_READ SCOPE_STAKEHOLDER_READ SCOPE_ROLE_BI INTERNAL PD_CLASSIFICATION SCOPE_PD_CLASSIFICATION PD_CLASSIFICATION_VIEW SCOPE_PD_CLASSIFICATION_VIEW SCOPE_CLIENT LGD_API ROLE_BI PD_CLASSIFICATION PD_CLASSIFICATION_VIEW pdClassification ROLE_CLIENT" | sed "s/ /%2C/g"`
+skill="ROLE_BI%2CPD_CLASSIFICATION%2CPD_CLASSIFICATION_VIEW%2CpdClassification%2CROLE_CLIENT"
 user=microservice
-user=sys_mortgage_signing
-client=kredir
+client=retina
 
 function mock_token() {
- curl -X GET "$url/v1/mockauth/mockraw?user_id=$user&rawscope=$scope&client_id=$client&ttl=28800&skill=*" -sb \
-  -H "accept: application/json"
+ url="http://lb$env-intern.sbab.se:8888/partner-auth-service"
+ curl_url="$url/v1/mockauth/mockraw?user_id=$user&rawscope=$scope&client_id=$client&ttl=28800&skill=$skill" 
+#echo "URL: $curl_url"
+ response=$(curl -X GET $curl_url -sb \
+  -H "accept: application/json" \
+  -H "client-id: retina")
+ jwt_token=$(echo $response | jq .user_token -r)
+ access_token=$(echo $response | jq .access_token -r)
+ echo $response
 }
 
 function get_token() {
@@ -123,6 +82,9 @@ else
  extract `get_token "$1"`
 fi
 }
+test -e ~/dotfiles/functions/configure_cert.sh && source ~/dotfiles/functions/configure_cert.sh
+alias mock_jwt="mock_token | jq .user_token -r | clipcopy"
+alias mock_at="mock_token | jq .access_token -r | clipcopy"
 ## END token script
 
 # IS & vagrant vars
