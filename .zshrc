@@ -1,54 +1,22 @@
-# Uncomment to profile startup time (same for last line
-# zmodload zsh/zprof
-# Path to your oh-my-zsh installation.
-LANG="en_US.UTF-8"
-LC_ALL="en_US.UTF-8"
-export ZSH=${HOME}/.oh-my-zsh
-MAILCHECK=0
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 
-DEBUG=false
-#set -x
-$DEBUG && echo "debugging startup"
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
-# Remove user@machine
-#DEFAULT_USER=`whoami`
+# Path to your Oh My Zsh installation.
+export ZSH="$HOME/.oh-my-zsh"
 
-# Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-ZSH_THEME="agnoster-leon"
-ZSH_THEME="gozilla"
-ZSH_THEME="miloshadzic"
-#ZSH_THEME="leon-miloshadzic"
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
+# Set name of the theme to load --- if set to "random", it will
+# load a random theme each time Oh My Zsh is loaded, in which case,
+# to know which specific one was loaded, run: echo $RANDOM_THEME
+# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+ZSH_THEME="powerlevel10k/powerlevel10k"
 
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
-# Uncomment the following line to change how often to auto-update (in days).
-# export UPDATE_ZSH_DAYS=13
-
-DISABLE_AUTO_TITLE="true"
-COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-HIST_STAMPS="yyyy-mm-dd"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
@@ -56,82 +24,110 @@ HIST_STAMPS="yyyy-mm-dd"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-#    jsontools
-#    virtualenv
-    zsh-autosuggestions
-    zsh-syntax-highlighting
-    git
+  git
+  direnv
+  docker
+  npm
+  python
+  sudo
+  zsh-autosuggestions
+  zsh-syntax-highlighting
 )
 
-clocknow() {
-	echo -n `date +%H:%M:%S`" "
-}
-
-$DEBUG && clocknow && echo "init oh-my-zsh"
 source $ZSH/oh-my-zsh.sh
-$DEBUG && clocknow && echo "oh-my-zsh"
+
 # User configuration
 
+# History settings
+HISTSIZE=10000
+SAVEHIST=10000
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+setopt SHARE_HISTORY
 
-source ~/.exports
-$DEBUG && clocknow && echo "exports"
-source ~/.aliases
-$DEBUG && clocknow && echo "aliases"
-source ~/.functions
-$DEBUG && clocknow && echo "functions"
-ssh-add -K $HOME/.ssh/id_rsa > /dev/null 2>&1
-$DEBUG && clocknow && echo "ssh add"
+# PATH
+export PATH="$HOME/.local/bin:$PATH"
 
-test -e ${HOME}/.iterm2_shell_integration.zsh && source ${HOME}/.iterm2_shell_integration.zsh
-$DEBUG && clocknow && echo "iterm2"
+# Secrets (API keys etc) - loaded from ~/.secrets
+[[ -f ~/.secrets ]] && source ~/.secrets
 
-# Default to whatever is set in workmode file, source SBAB-config initially and setup toggle alias
-test -e ~/.workmode && source ~/.workmode
-$DEBUG && clocknow && echo "workmode"
+# Claude Code / Anthropic
+export CLAUDE_CODE_USE_FOUNDRY=1
+export ANTHROPIC_FOUNDRY_BASE_URL=https://ai-agents-dev-001.services.ai.azure.com/anthropic
+export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-5'
+export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5'
+export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6'
+export ANTHROPIC_MODEL=$ANTHROPIC_DEFAULT_OPUS_MODEL
 
-# Uncomment to profile startup time (same for first line)
-# zprof
+# Map Foundry variables to standard Anthropic variables for Claude Code compatibility
+export ANTHROPIC_API_KEY="$ANTHROPIC_FOUNDRY_API_KEY"
+export ANTHROPIC_BASE_URL="$ANTHROPIC_FOUNDRY_BASE_URL"
 
-export PATH=$PATH:/Users/lhen/.nvm/versions/node/v16.20.0/bin #current version
-lazy_load_nvm() {
-	$DEBUG && clocknow && echo "lazy nvm: start"
-	unset -f npm node nvm yarn
-	export NVM_DIR="$HOME/.nvm"
-	[[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh" --no-use # This loads nvm
-	[[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-	$DEBUG && clocknow && echo "lazy nvm: done"
+
+
+# direnv
+eval "$(direnv hook zsh)"
+
+# Dotfiles
+source ~/dotfiles/aliases.sh
+source ~/dotfiles/functions.sh
+source ~/dotfiles/worktree-helpers.sh
+
+# Git push with Azure DevOps PR link
+git-pushpr() {
+    git push "$@"
+
+    if [ $? -eq 0 ]; then
+        local BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+        local REMOTE_URL=$(git remote get-url origin 2>/dev/null)
+        local ORG PROJECT REPO
+
+        if [[ $REMOTE_URL =~ git@ssh\.dev\.azure\.com:v3/([^/]+)/([^/]+)/([^/]+) ]]; then
+            ORG="${match[1]}"
+            PROJECT="${match[2]}"
+            REPO="${match[3]}"
+        elif [[ $REMOTE_URL =~ https://dev\.azure\.com/([^/]+)/([^/]+)/_git/(.+) ]]; then
+            ORG="${match[1]}"
+            PROJECT="${match[2]}"
+            REPO="${match[3]}"
+        fi
+
+        if [ -n "$ORG" ] && [ -n "$PROJECT" ] && [ -n "$REPO" ]; then
+            local PR_URL="https://dev.azure.com/${ORG}/${PROJECT}/_git/${REPO}/pullrequestcreate?sourceRef=${BRANCH}&targetRef=dev"
+            echo ""
+            echo "✓ Pushed successfully!"
+            echo ""
+            echo "Create PR: ${PR_URL}"
+            echo ""
+        fi
+    fi
 }
-node() {
-  lazy_load_nvm
-  node $@
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+fpath+=~/.zfunc
+
+# CLI access token for replay script
+export CLI_ACCESS_TOKEN_FILE="/tmp/mytoken.txt"
+[[ -f "$CLI_ACCESS_TOKEN_FILE" ]] && export CLI_ACCESS_TOKEN=$(cat "$CLI_ACCESS_TOKEN_FILE" | tr -d '\n')
+
+setmytoken() {
+    local token="${1#Bearer }"
+    echo -n "$token" > "$CLI_ACCESS_TOKEN_FILE"
+    export CLI_ACCESS_TOKEN="$token"
+    echo "Token saved and exported (${#token} chars)"
 }
-npm() {
-  lazy_load_nvm
-  npm $@
-}
-yarn() {
-  lazy_load_nvm
-  yarn $@
-}
+
+# nvm - lazy loaded for faster shell startup
+export NVM_DIR="$HOME/.nvm"
 nvm() {
-  lazy_load_nvm
-  nvm $@
+  unset -f nvm node npm npx pnpm corepack
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  nvm "$@"
 }
-#$DEBUG && clocknow && echo "nvm_init"
-
-$DEBUG && clocknow && echo "sbabrc"
-test -e ~/.sbabrc && source ~/.sbabrc
-
-$DEBUG && clocknow && echo "DONE"
-
-
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"
-
-# pnpm
-export PNPM_HOME="/Users/lhen/Library/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
+node() { nvm use default >/dev/null 2>&1; unset -f node; command node "$@"; }
+npm() { nvm use default >/dev/null 2>&1; unset -f npm; command npm "$@"; }
+npx() { nvm use default >/dev/null 2>&1; unset -f npx; command npx "$@"; }
+pnpm() { nvm use default >/dev/null 2>&1; unset -f pnpm; command pnpm "$@"; }
+corepack() { nvm use default >/dev/null 2>&1; unset -f corepack; command corepack "$@"; }

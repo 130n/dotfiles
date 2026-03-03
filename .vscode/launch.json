@@ -1,0 +1,120 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "Backend",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": ["main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"],
+            "cwd": "${workspaceFolder}/backend",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/backend"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Docker Backend (Attach)",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "pathMapping": {
+                "/app": "${workspaceFolder}/backend"
+            },
+            "justMyCode": true,
+            "logToFile": false
+        },
+        {
+            "name": "Frontend",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "${env:HOME}/.local/bin/npm",
+            "runtimeArgs": ["run", "dev"],
+            "cwd": "${workspaceFolder}/frontend",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Docker Compose (Full Stack)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "echo",
+            "runtimeArgs": ["Docker Compose services running (Backend, DB, Azurite, Redis). Stop debugging to shut down."],
+            "preLaunchTask": "Docker Compose: Start All Services",
+            "postDebugTask": "Docker Compose: Stop All Services",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Generate OpenAPI",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "make",
+            "runtimeArgs": ["generate-openapi"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Test: Unit Tests",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "make",
+            "runtimeArgs": ["test"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Test: AI Subgraph",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "make",
+            "runtimeArgs": ["test-ai-subgraph"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Test: AI E2E",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "make",
+            "runtimeArgs": ["test-ai-e2e"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Test: All AI Tests",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "make",
+            "runtimeArgs": ["test-ai"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Test: All Tests",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "make",
+            "runtimeArgs": ["test-all"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "E2E: List Cases",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "make",
+            "runtimeArgs": ["e2e-list"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Full Stack",
+            "configurations": ["Backend", "Frontend"]
+        }
+    ]
+}
