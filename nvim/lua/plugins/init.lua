@@ -64,7 +64,7 @@ return {
       local configs_ok, configs = pcall(require, "nvim-treesitter.configs")
       if configs_ok and configs and configs.setup then
         configs.setup({
-          ensure_installed = { "lua", "python", "javascript", "typescript", "rust", "go", "org" },
+          ensure_installed = { "lua", "python", "javascript", "typescript", "rust", "go" },
           highlight = { enable = true },
           indent = { enable = true },
         })
@@ -145,6 +145,8 @@ return {
         org_agenda_files = "~/dev/todo/**/*",
         org_default_notes_file = "~/dev/todo/TODO.org",
         org_todo_keywords = { "TODO", "IN_PROGRESS", "WAITING", "|", "DONE", "CANCELLED" },
+        org_startup_folded = "content",
+        org_startup_indented = true,
         org_capture_templates = {
           w = {
             description = "Work task",
@@ -159,6 +161,30 @@ return {
             headline = "Personal",
           },
         },
+      })
+
+      -- Archive all DONE/CANCELLED headings at once
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "org",
+        callback = function()
+          vim.keymap.set("n", "<leader>oD", function()
+            local org = require("orgmode")
+            local file = org.files:get_current_file()
+            local done = vim.tbl_filter(function(h)
+              return h:is_done()
+            end, file:get_headlines())
+            if #done == 0 then
+              vim.notify("No DONE items to archive")
+              return
+            end
+            -- Archive from bottom to top so line numbers stay valid
+            table.sort(done, function(a, b) return a:get_range().start_line > b:get_range().start_line end)
+            for _, headline in ipairs(done) do
+              org.capture:refile_file_headline_to_archive(headline)
+            end
+            vim.notify(("Archived %d items"):format(#done))
+          end, { buffer = true, desc = "org archive all DONE" })
+        end,
       })
     end,
   },

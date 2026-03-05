@@ -6,7 +6,7 @@ return {
   },
   {
     "williamboman/mason-lspconfig.nvim",
-    dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig" },
+    dependencies = { "williamboman/mason.nvim" },
     config = function()
       require("mason-lspconfig").setup({
         ensure_installed = { "basedpyright", "ruff", "lua_ls" },
@@ -14,17 +14,14 @@ return {
     end,
   },
 
-  -- LSP config
+  -- LSP config (Neovim 0.11+ native API)
   {
     "neovim/nvim-lspconfig",
     dependencies = { "williamboman/mason-lspconfig.nvim" },
     config = function()
-      local lspconfig = require("lspconfig")
-
       -- Keybindings när LSP attachar
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(event)
-          local opts = { buffer = event.buf }
           vim.keymap.set("n", "gd", vim.lsp.buf.definition, { buffer = event.buf, desc = "Go to definition" })
           vim.keymap.set("n", "gr", vim.lsp.buf.references, { buffer = event.buf, desc = "Find references" })
           vim.keymap.set("n", "gI", vim.lsp.buf.implementation, { buffer = event.buf, desc = "Go to implementation" })
@@ -36,32 +33,33 @@ return {
       })
 
       -- Python (basedpyright)
-      lspconfig.basedpyright.setup({
+      vim.lsp.config.basedpyright = {
         settings = {
           basedpyright = {
             analysis = {
               typeCheckingMode = "standard",
               diagnosticSeverityOverrides = {
-                -- Matcha projektets basedpyright-config
                 reportUnusedImport = "information",
                 reportUnusedVariable = "information",
               },
             },
           },
         },
-      })
+      }
 
-      -- Ruff (Python linting/formatting, snabbare än ruff-lsp)
-      lspconfig.ruff.setup({})
+      -- Ruff (Python linting/formatting)
+      vim.lsp.config.ruff = {}
 
       -- Lua (för nvim-config)
-      lspconfig.lua_ls.setup({
+      vim.lsp.config.lua_ls = {
         settings = {
           Lua = {
             diagnostics = { globals = { "vim" } },
           },
         },
-      })
+      }
+
+      vim.lsp.enable({ "basedpyright", "ruff", "lua_ls" })
     end,
   },
 }
