@@ -98,6 +98,9 @@ vim.keymap.set("n", "<leader>sa", function()
   require("telescope.builtin").find_files({ search_dirs = { "backend/src/agents/" } })
 end, { desc = "Find files in agents" })
 
+-- Daily rotate todos
+vim.keymap.set("n", "<leader>dr", ":!~/dev/todo/daily-rotate<CR>:e!<CR>", { desc = "Daily rotate todos" })
+
 -- Hoppa mellan fönster med Ctrl+hjkl
 vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Go to left window" })
 vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Go to lower window" })
