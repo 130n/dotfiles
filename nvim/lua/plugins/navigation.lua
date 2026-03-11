@@ -1,4 +1,40 @@
 return {
+  -- Bufferline: flikar för öppna filer
+  {
+    "akinsho/bufferline.nvim",
+    version = "*",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require("bufferline").setup({
+        options = {
+          diagnostics = "nvim_lsp",
+          offsets = {
+            { filetype = "NvimTree", text = "Explorer", highlight = "Directory", separator = true },
+          },
+          show_close_icon = false,
+          separator_style = "thin",
+        },
+      })
+      vim.keymap.set("n", "<Tab>", "<cmd>BufferLineCycleNext<CR>", { desc = "Next buffer" })
+      vim.keymap.set("n", "<S-Tab>", "<cmd>BufferLineCyclePrev<CR>", { desc = "Prev buffer" })
+      vim.keymap.set("n", "<leader>x", "<cmd>bdelete<CR>", { desc = "Close buffer" })
+    end,
+  },
+
+  -- Diffview: se alla ändringar mot en branch (t.ex. dev)
+  {
+    "sindrets/diffview.nvim",
+    keys = {
+      { "<leader>gd", "<cmd>DiffviewOpen dev<CR>", desc = "Diff vs dev" },
+      { "<leader>gD", "<cmd>DiffviewOpen<CR>", desc = "Diff vs HEAD" },
+      { "<leader>gh", "<cmd>DiffviewFileHistory %<CR>", desc = "File history" },
+      { "<leader>gq", "<cmd>DiffviewClose<CR>", desc = "Close diffview" },
+    },
+    config = function()
+      require("diffview").setup()
+    end,
+  },
+
   -- Harpoon: snabba hopp mellan aktiva filer
   {
     "ThePrimeagen/harpoon",

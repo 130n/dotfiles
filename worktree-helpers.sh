@@ -1,15 +1,12 @@
 #!/usr/bin/env zsh
-# Worktree helpers for AI-EmailToOrder
-# Source this from .zshrc: source ~/dev/worktree-helpers.sh
+# Generic git worktree helpers with tmux integration
+# Source this from .zshrc: source ~/dotfiles/worktree-helpers.sh
 
-ETO_ROOT="$HOME/dev/AI-EmailToOrder"
-ETO_WORKTREES="$ETO_ROOT/.worktrees"
-
-# Create a new worktree, checkout branch, copy .env files, optionally start claude
+# Create a new worktree, copy .env files, open in tmux
 # Usage:
 #   wt-new mermaid feature/mermaid-visualization
-#   wt-new mermaid feature/mermaid-visualization --claude   # also start claude
-#   wt-new mermaid                                          # creates new branch: mermaid (from dev)
+#   wt-new mermaid feature/mermaid-visualization --claude
+#   wt-new mermaid                                          # creates new branch: mermaid
 wt-new() {
   local name="$1"
   local branch="$2"
@@ -18,8 +15,15 @@ wt-new() {
   if [[ -z "$name" ]]; then
     echo "Usage: wt-new <name> [branch] [--claude]"
     echo "  name:    short name for worktree (creates .worktrees/<name>)"
-    echo "  branch:  branch to checkout (default: creates new branch '<name>' from dev)"
+    echo "  branch:  branch to checkout (default: new branch '<name>' from HEAD)"
     echo "  --claude: start claude after setup"
+    return 1
+  fi
+
+  # Must be in a git repo
+  local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$repo_root" ]]; then
+    echo "Not inside a git repository"
     return 1
   fi
 
@@ -28,34 +32,32 @@ wt-new() {
     [[ "$arg" == "--claude" ]] && start_claude=true
   done
 
-  local wt_dir="${ETO_WORKTREES}/${name}"
+  local repo_name=$(basename "$repo_root")
+  local wt_base="$repo_root/.worktrees"
+  local wt_dir="$wt_base/$name"
 
   if [[ -d "$wt_dir" ]]; then
     echo "Error: $wt_dir already exists. Use wt to switch to it."
     return 1
   fi
 
-  # Ensure .worktrees directory exists
-  mkdir -p "$ETO_WORKTREES"
-
+  mkdir -p "$wt_base"
   echo "Creating worktree at $wt_dir..."
 
   if [[ -n "$branch" && "$branch" != "--claude" ]]; then
-    # Check if branch exists
-    if git -C "$ETO_ROOT" rev-parse --verify "$branch" &>/dev/null; then
-      git -C "$ETO_ROOT" worktree add "$wt_dir" "$branch"
-    elif git -C "$ETO_ROOT" rev-parse --verify "origin/$branch" &>/dev/null; then
-      git -C "$ETO_ROOT" worktree add "$wt_dir" "origin/$branch"
+    if git rev-parse --verify "$branch" &>/dev/null; then
+      git worktree add "$wt_dir" "$branch"
+    elif git rev-parse --verify "origin/$branch" &>/dev/null; then
+      git worktree add "$wt_dir" "origin/$branch"
     else
-      echo "Branch '$branch' not found locally or on remote. Create new branch from dev? [y/N]"
+      echo "Branch '$branch' not found. Create new branch from HEAD? [y/N]"
       read -r confirm
       [[ "$confirm" != [yY] ]] && return 1
-      git -C "$ETO_ROOT" worktree add -b "$branch" "$wt_dir" dev
+      git worktree add -b "$branch" "$wt_dir"
     fi
   else
-    # No branch specified, create new branch from dev
-    echo "No branch specified, creating new branch '$name' from dev..."
-    git -C "$ETO_ROOT" worktree add -b "$name" "$wt_dir" dev
+    echo "No branch specified, creating new branch '$name' from HEAD..."
+    git worktree add -b "$name" "$wt_dir"
   fi
 
   if [[ $? -ne 0 ]]; then
@@ -63,68 +65,68 @@ wt-new() {
     return 1
   fi
 
-  # Copy .env files
+  # Copy .env files found in repo root or immediate subdirs
   local copied=()
-  if [[ -f "$ETO_ROOT/backend/.env" ]]; then
-    cp "$ETO_ROOT/backend/.env" "$wt_dir/backend/.env"
-    copied+=(backend/.env)
-  fi
-  if [[ -f "$ETO_ROOT/frontend/.env" ]]; then
-    cp "$ETO_ROOT/frontend/.env" "$wt_dir/frontend/.env"
-    copied+=(frontend/.env)
-  fi
+  for env_file in "$repo_root"/.env "$repo_root"/*/.env; do
+    [[ -f "$env_file" ]] || continue
+    local rel="${env_file#$repo_root/}"
+    local target_dir="$wt_dir/$(dirname "$rel")"
+    mkdir -p "$target_dir"
+    cp "$env_file" "$wt_dir/$rel"
+    copied+=("$rel")
+  done
 
-  # Symlink shared files to avoid duplication
+  # Copy .vscode/settings.json if it exists in repo
   local linked=()
-  # NOTE: .venv is NOT symlinked — each worktree gets its own via `uv sync`
-  # to avoid cross-contamination of sys.path via .pth files
-  if [[ -f "$ETO_ROOT/LOCAL-CLAUDE.md" ]]; then
-    ln -s "$ETO_ROOT/LOCAL-CLAUDE.md" "$wt_dir/LOCAL-CLAUDE.md"
-    linked+=(LOCAL-CLAUDE.md)
-  fi
-
-  # Setup .vscode: symlink shared configs, copy settings as template
-  local dotfiles_vscode="$HOME/dotfiles/.vscode"
-  if [[ -d "$dotfiles_vscode" ]]; then
+  if [[ -d "$repo_root/.vscode" ]]; then
     mkdir -p "$wt_dir/.vscode"
-    if [[ -f "$dotfiles_vscode/tasks.json" ]]; then
-      ln -s "$dotfiles_vscode/tasks.json" "$wt_dir/.vscode/tasks.json"
-      linked+=(.vscode/tasks.json)
-    fi
-    if [[ -f "$dotfiles_vscode/launch.json" ]]; then
-      ln -s "$dotfiles_vscode/launch.json" "$wt_dir/.vscode/launch.json"
-      linked+=(.vscode/launch.json)
-    fi
-    if [[ -f "$dotfiles_vscode/settings.json" ]]; then
-      cp "$dotfiles_vscode/settings.json" "$wt_dir/.vscode/settings.json"
-      copied+=(.vscode/settings.json)
-    fi
+    for f in "$repo_root/.vscode"/*.json; do
+      [[ -f "$f" ]] || continue
+      local fname=$(basename "$f")
+      if [[ "$fname" == "settings.json" ]]; then
+        cp "$f" "$wt_dir/.vscode/$fname"
+        copied+=(".vscode/$fname")
+      else
+        ln -s "$f" "$wt_dir/.vscode/$fname"
+        linked+=(".vscode/$fname")
+      fi
+    done
   fi
 
   echo "Worktree created: $wt_dir"
   [[ ${#copied[@]} -gt 0 ]] && echo "Copied: ${copied[*]}"
   [[ ${#linked[@]} -gt 0 ]] && echo "Symlinked: ${linked[*]}"
 
-  if $start_claude; then
-    cd "$wt_dir" && claude
+  # Open in tmux
+  if [[ -n "$TMUX" ]]; then
+    tmux new-window -n "$name" -c "$wt_dir"
+    if $start_claude; then
+      tmux send-keys "claude" C-m
+    fi
   else
-    echo "To start working: cd $wt_dir && claude"
+    cd "$wt_dir"
+    $start_claude && claude
   fi
 }
 
-# Select an existing worktree and start claude there
+# Select an existing worktree and switch to it in tmux
 # Usage: wt
 wt() {
+  local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$repo_root" ]]; then
+    echo "Not inside a git repository"
+    return 1
+  fi
+
   local worktrees=()
   local labels=()
 
-  # Parse git worktree list output
   while IFS= read -r line; do
     local dir=$(echo "$line" | awk '{print $1}')
     local branch=$(echo "$line" | sed 's/.*\[\(.*\)\]/\1/')
     worktrees+=("$dir")
     labels+=("$(basename "$dir")  ($branch)")
-  done < <(git -C "$ETO_ROOT" worktree list | grep -v "bare")
+  done < <(git worktree list | grep -v "bare")
 
   if [[ ${#worktrees[@]} -eq 0 ]]; then
     echo "No worktrees found."
@@ -146,6 +148,205 @@ wt() {
   fi
 
   local target="${worktrees[$choice]}"
-  echo "Switching to $target..."
-  cd "$target" && claude
+  local name=$(basename "$target")
+
+  if [[ -n "$TMUX" ]]; then
+    tmux new-window -n "$name" -c "$target"
+  else
+    cd "$target"
+  fi
+}
+
+# Re-copy .env files from main repo to current worktree
+# Usage: wt-sync-env
+wt-sync-env() {
+  local wt_dir=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$wt_dir" ]]; then
+    echo "Not inside a git repository"
+    return 1
+  fi
+
+  # Find the main repo root (parent of .worktrees)
+  local repo_root=""
+  if [[ "$wt_dir" == */.worktrees/* ]]; then
+    repo_root="${wt_dir%%/.worktrees/*}"
+  else
+    echo "Not inside a worktree (.worktrees/ not in path)"
+    return 1
+  fi
+
+  local copied=()
+  for env_file in "$repo_root"/.env "$repo_root"/*/.env; do
+    [[ -f "$env_file" ]] || continue
+    local rel="${env_file#$repo_root/}"
+    local target_dir="$wt_dir/$(dirname "$rel")"
+    mkdir -p "$target_dir"
+    cp "$env_file" "$wt_dir/$rel"
+    copied+=("$rel")
+  done
+
+  if [[ ${#copied[@]} -gt 0 ]]; then
+    echo "Synced from $repo_root: ${copied[*]}"
+  else
+    echo "No .env files found in $repo_root"
+  fi
+}
+
+# Show compact status for all worktrees
+# Usage: wt-status
+wt-status() {
+  local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$repo_root" ]]; then
+    echo "Not inside a git repository"
+    return 1
+  fi
+  if [[ "$repo_root" == */.worktrees/* ]]; then
+    repo_root="${repo_root%%/.worktrees/*}"
+  fi
+
+  while IFS= read -r line; do
+    local dir=$(echo "$line" | awk '{print $1}')
+    local branch=$(echo "$line" | sed 's/.*\[\(.*\)\]/\1/')
+    local name=$(basename "$dir")
+    [[ "$dir" == "$repo_root" ]] && name="(main)"
+
+    # Count dirty files
+    local staged=$(git -C "$dir" diff --cached --numstat 2>/dev/null | wc -l)
+    local modified=$(git -C "$dir" diff --numstat 2>/dev/null | wc -l)
+    local untracked=$(git -C "$dir" ls-files --others --exclude-standard 2>/dev/null | wc -l)
+
+    # Ahead/behind remote
+    local ab=""
+    local upstream=$(git -C "$dir" rev-parse --abbrev-ref "@{upstream}" 2>/dev/null)
+    if [[ -n "$upstream" ]]; then
+      local ahead=$(git -C "$dir" rev-list --count "$upstream..HEAD" 2>/dev/null)
+      local behind=$(git -C "$dir" rev-list --count "HEAD..$upstream" 2>/dev/null)
+      [[ "$ahead" -gt 0 ]] && ab+="↑$ahead"
+      [[ "$behind" -gt 0 ]] && ab+="↓$behind"
+    else
+      ab="no remote"
+    fi
+
+    # Build info string
+    local info=""
+    [[ "$staged" -gt 0 ]] && info+=" +$staged"
+    [[ "$modified" -gt 0 ]] && info+=" ~$modified"
+    [[ "$untracked" -gt 0 ]] && info+=" ?$untracked"
+    [[ -z "$info" ]] && info=" clean"
+
+    printf "%-35s %-40s %-10s [%s]\n" "$name" "$branch" "$ab" "${info# }"
+  done < <(git -C "$repo_root" worktree list | grep -v "bare")
+
+  echo ""
+  echo "  + staged  ~ modified  ? untracked  ↑ ahead  ↓ behind"
+}
+
+# Remove worktrees whose branches have been merged/deleted
+# Shows candidates first, then asks for confirmation
+# Usage: wt-prune [--force] [-y]
+wt-prune() {
+  local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$repo_root" ]]; then
+    echo "Not inside a git repository"
+    return 1
+  fi
+
+  # If inside a worktree, find main repo
+  if [[ "$repo_root" == */.worktrees/* ]]; then
+    repo_root="${repo_root%%/.worktrees/*}"
+  fi
+
+  local skip_confirm=false
+  for arg in "$@"; do
+    [[ "$arg" == "-y" ]] && skip_confirm=true
+  done
+
+  # Fetch latest remote state and clean up stale references
+  echo "Fetching remote state..."
+  git -C "$repo_root" fetch --prune 2>/dev/null
+  git -C "$repo_root" worktree prune
+
+  # Collect candidates
+  local candidates=()
+  local candidate_dirs=()
+  local candidate_notes=()
+  while IFS= read -r line; do
+    local dir=$(echo "$line" | awk '{print $1}')
+    local branch=$(echo "$line" | sed 's/.*\[\(.*\)\]/\1/')
+
+    # Skip main repo
+    [[ "$dir" == "$repo_root" ]] && continue
+    # Skip if not in .worktrees
+    [[ "$dir" != */.worktrees/* ]] && continue
+
+    # Check if branch should be pruned:
+    # - Local branch deleted entirely
+    # - Remote tracking was set up but remote branch is now gone
+    # - Branch is fully merged into dev
+    # Branches that were never pushed (no upstream) are NOT pruned
+    local gone=false
+    if ! git -C "$repo_root" rev-parse --verify "refs/heads/$branch" &>/dev/null; then
+      gone=true
+    else
+      local upstream=$(git -C "$repo_root" config "branch.$branch.remote" 2>/dev/null)
+      if [[ -n "$upstream" ]] && ! git -C "$repo_root" rev-parse --verify "refs/remotes/origin/$branch" &>/dev/null; then
+        gone=true
+      elif git -C "$repo_root" merge-base --is-ancestor "refs/heads/$branch" dev 2>/dev/null; then
+        gone=true
+      fi
+    fi
+
+    if $gone; then
+      # Note uncommitted changes in output
+      local dirty=""
+      if [[ -d "$dir" ]]; then
+        dirty=$(git -C "$dir" status --porcelain 2>/dev/null)
+      fi
+      local marker=""
+      [[ -n "$dirty" ]] && marker=" ⚠ uncommitted changes"
+      candidates+=("$branch")
+      candidate_dirs+=("$dir")
+      candidate_notes+=("$marker")
+    fi
+  done < <(git -C "$repo_root" worktree list | grep -v "bare")
+
+  # Nothing to do?
+  if [[ ${#candidates[@]} -eq 0 ]]; then
+    echo "No stale worktrees found."
+    return 0
+  fi
+
+  # Show candidates
+  echo ""
+  echo "Will remove:"
+  for i in {1..${#candidates[@]}}; do
+    echo "  - ${candidate_dirs[$i]}  (${candidates[$i]})${candidate_notes[$i]}"
+  done
+  echo ""
+
+  # Confirm
+  if ! $skip_confirm; then
+    printf "Proceed? [y/N] "
+    read -r confirm
+    [[ "$confirm" != [yY] ]] && echo "Aborted." && return 0
+  fi
+
+  # Remove
+  local removed=()
+  for i in {1..${#candidates[@]}}; do
+    local dir="${candidate_dirs[$i]}"
+    local branch="${candidates[$i]}"
+    echo "Removing: $dir ($branch)"
+    git -C "$repo_root" worktree remove --force "$dir" 2>/dev/null
+    if [[ $? -eq 0 ]]; then
+      removed+=("$branch")
+    else
+      echo "  Failed, trying manual cleanup..."
+      rm -rf "$dir"
+      git -C "$repo_root" worktree prune
+      removed+=("$branch")
+    fi
+  done
+
+  echo "Pruned ${#removed[@]} worktree(s): ${removed[*]}"
 }

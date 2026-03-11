@@ -99,7 +99,10 @@ vim.keymap.set("n", "<leader>sa", function()
 end, { desc = "Find files in agents" })
 
 -- Daily rotate todos
-vim.keymap.set("n", "<leader>dr", ":!~/dev/todo/daily-rotate<CR>:e!<CR>", { desc = "Daily rotate todos" })
+vim.keymap.set("n", "<leader>dr", function()
+  vim.fn.system("~/dev/todo/daily-rotate")
+  vim.cmd("e!")
+end, { desc = "Daily rotate todos" })
 
 -- Hoppa mellan fönster med Ctrl+hjkl
 vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Go to left window" })
