@@ -131,3 +131,4 @@ npm() { nvm use default >/dev/null 2>&1; unset -f npm; command npm "$@"; }
 npx() { nvm use default >/dev/null 2>&1; unset -f npx; command npx "$@"; }
 pnpm() { nvm use default >/dev/null 2>&1; unset -f pnpm; command pnpm "$@"; }
 corepack() { nvm use default >/dev/null 2>&1; unset -f corepack; command corepack "$@"; }
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

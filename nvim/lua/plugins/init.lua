@@ -142,7 +142,7 @@ return {
     ft = { "org" },
     config = function()
       require("orgmode").setup({
-        org_agenda_files = "~/dev/todo/**/*",
+        org_agenda_files = "~/dev/todo/*.org",
         org_default_notes_file = "~/dev/todo/TODO.org",
         org_todo_keywords = { "TODO", "IN_PROGRESS", "WAITING", "|", "DONE", "CANCELLED" },
         org_startup_folded = "content",
@@ -163,18 +163,27 @@ return {
         },
       })
 
-      -- Archive all DONE/CANCELLED headings at once
+      -- Archive DONE/CANCELLED headings that have no active children
       vim.api.nvim_create_autocmd("FileType", {
         pattern = "org",
         callback = function()
           vim.keymap.set("n", "<leader>oD", function()
             local org = require("orgmode")
             local file = org.files:get_current_file()
+
+            local function has_active_children(headline)
+              for _, child in ipairs(headline:get_child_headlines()) do
+                if not child:is_done() then return true end
+                if has_active_children(child) then return true end
+              end
+              return false
+            end
+
             local done = vim.tbl_filter(function(h)
-              return h:is_done()
+              return h:is_done() and not has_active_children(h)
             end, file:get_headlines())
             if #done == 0 then
-              vim.notify("No DONE items to archive")
+              vim.notify("No DONE items to archive (items with active children are skipped)")
               return
             end
             -- Archive from bottom to top so line numbers stay valid
@@ -183,7 +192,7 @@ return {
               org.capture:refile_file_headline_to_archive(headline)
             end
             vim.notify(("Archived %d items"):format(#done))
-          end, { buffer = true, desc = "org archive all DONE" })
+          end, { buffer = true, desc = "org archive all DONE (skip active children)" })
         end,
       })
     end,
@@ -195,33 +204,9 @@ return {
     config = true,
   },
 
-  -- Avante (Cursor-liknande AI-assistent)
-  {
-    "yetone/avante.nvim",
-    event = "VeryLazy",
-    version = false,
-    build = "make",
-    dependencies = {
-      "nvim-treesitter/nvim-treesitter",
-      "stevearc/dressing.nvim",
-      "nvim-lua/plenary.nvim",
-      "MunifTanjim/nui.nvim",
-      "nvim-tree/nvim-web-devicons",
-      "MeanderingProgrammer/render-markdown.nvim",
-    },
-    config = function()
-      require("avante").setup({
-        provider = "claude",
-        providers = {
-          claude = {
-            endpoint = "https://ai-agents-dev-001.services.ai.azure.com/anthropic",
-            model = "claude-opus-4-5",
-            extra_request_body = {
-              max_tokens = 4096,
-            },
-          },
-        },
-      })
-    end,
-  },
+  -- Avante (disabled - using claudecode.nvim instead)
+  -- {
+  --   "yetone/avante.nvim",
+  --   enabled = false,
+  -- },
 }

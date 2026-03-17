@@ -56,8 +56,17 @@ wt-new() {
       git worktree add -b "$branch" "$wt_dir"
     fi
   else
-    echo "No branch specified, creating new branch '$name' from HEAD..."
-    git worktree add -b "$name" "$wt_dir"
+    # Check if name matches an existing branch before creating a new one
+    if git rev-parse --verify "$name" &>/dev/null; then
+      echo "Found existing local branch '$name', using it..."
+      git worktree add "$wt_dir" "$name"
+    elif git rev-parse --verify "origin/$name" &>/dev/null; then
+      echo "Found existing remote branch '$name', using it..."
+      git worktree add "$wt_dir" "origin/$name"
+    else
+      echo "No branch specified, creating new branch '$name' from HEAD..."
+      git worktree add -b "$name" "$wt_dir"
+    fi
   fi
 
   if [[ $? -ne 0 ]]; then
@@ -96,6 +105,18 @@ wt-new() {
   echo "Worktree created: $wt_dir"
   [[ ${#copied[@]} -gt 0 ]] && echo "Copied: ${copied[*]}"
   [[ ${#linked[@]} -gt 0 ]] && echo "Symlinked: ${linked[*]}"
+
+  # Run project-specific setup if available
+  if [[ -x "$repo_root/scripts/create-worktree-compose.sh" ]]; then
+    echo "Running project-specific docker compose setup..."
+    # Get actual branch from the worktree
+    local actual_branch=$(cd "$wt_dir" && git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    # Derive port offset from branch name (range 100-899)
+    local port_offset=$(( $(echo -n "$actual_branch" | md5sum | tr -d '[a-f]' | cut -c1-3) % 800 + 100 ))
+    local backend_port=$((8000 + port_offset))
+    local frontend_port=$((5000 + port_offset))
+    "$repo_root/scripts/create-worktree-compose.sh" "$wt_dir" "$backend_port" "$frontend_port" || echo "Warning: docker compose setup failed"
+  fi
 
   # Open in tmux
   if [[ -n "$TMUX" ]]; then
@@ -138,9 +159,49 @@ wt() {
   for i in {1..${#labels[@]}}; do
     echo "  $i) ${labels[$i]}"
   done
+  echo "  +) New worktree from existing branch"
   echo ""
-  printf "Choice [1-${#labels[@]}]: "
+  printf "Choice [1-${#labels[@]}, +]: "
   read -r choice
+
+  # Handle "new from branch" option
+  if [[ "$choice" == "+" ]]; then
+    echo ""
+    echo "Recent branches (by commit date):"
+    local branches=()
+    local branch_labels=()
+    local idx=1
+    while IFS= read -r line; do
+      local branch=$(echo "$line" | awk '{print $1}')
+      local date=$(echo "$line" | awk '{print $2, $3}')
+      branches+=("$branch")
+      branch_labels+=("$branch  ($date)")
+      echo "  $idx) ${branch_labels[-1]}"
+      ((idx++))
+    done < <(git for-each-ref --sort=-committerdate --format='%(refname:short) %(committerdate:relative)' refs/heads refs/remotes/origin | grep -v '/HEAD$' | head -15)
+
+    echo ""
+    printf "Branch [1-${#branches[@]}]: "
+    read -r branch_choice
+
+    if [[ -z "$branch_choice" || "$branch_choice" -lt 1 || "$branch_choice" -gt ${#branches[@]} ]] 2>/dev/null; then
+      echo "Invalid choice."
+      return 1
+    fi
+
+    local selected_branch="${branches[$branch_choice]}"
+    # Strip origin/ prefix if present
+    local wt_name="${selected_branch#origin/}"
+    wt_name="${wt_name//\//-}"  # Replace / with -
+
+    echo ""
+    printf "Worktree name [$wt_name]: "
+    read -r custom_name
+    [[ -n "$custom_name" ]] && wt_name="$custom_name"
+
+    wt-new "$wt_name" "$selected_branch" --claude
+    return $?
+  fi
 
   if [[ -z "$choice" || "$choice" -lt 1 || "$choice" -gt ${#labels[@]} ]] 2>/dev/null; then
     echo "Invalid choice."
