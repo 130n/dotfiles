@@ -303,8 +303,11 @@ wt-status() {
 }
 
 # Remove worktrees whose branches have been merged/deleted
-# Shows candidates first, then asks for confirmation
-# Usage: wt-prune [--force] [-y]
+# Shows candidates first (with reason), then asks for confirmation
+# Usage: wt-prune [--force|-f] [--include-abandoned|-a] [-y]
+#   --force / -f             also remove worktrees with uncommitted changes
+#   --include-abandoned / -a treat branches with abandoned Azure DevOps PRs as prunable
+#   -y                       skip confirmation prompt
 wt-prune() {
   local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
   if [[ -z "$repo_root" ]]; then
@@ -318,8 +321,12 @@ wt-prune() {
   fi
 
   local skip_confirm=false
+  local force=false
+  local include_abandoned=false
   for arg in "$@"; do
     [[ "$arg" == "-y" ]] && skip_confirm=true
+    [[ "$arg" == "--force" || "$arg" == "-f" ]] && force=true
+    [[ "$arg" == "--include-abandoned" || "$arg" == "-a" ]] && include_abandoned=true
   done
 
   # Fetch latest remote state and clean up stale references
@@ -327,63 +334,153 @@ wt-prune() {
   git -C "$repo_root" fetch --prune 2>/dev/null
   git -C "$repo_root" worktree prune
 
-  # Collect candidates
-  local candidates=()
-  local candidate_dirs=()
-  local candidate_notes=()
+  # Best-effort: query Azure DevOps for source branches with completed/abandoned PRs.
+  # Squash merges leave local branches that aren't ancestors of dev, so the only
+  # reliable signal that they're done is the PR status.
+  local -A merged_source_branches
+  local -A abandoned_source_branches
+  local remote_url=$(git -C "$repo_root" remote get-url origin 2>/dev/null)
+  if [[ ("$remote_url" == *dev.azure.com* || "$remote_url" == *visualstudio.com*) ]] && command -v az &>/dev/null; then
+    local ado_org ado_project ado_repo
+    if [[ "$remote_url" =~ dev\.azure\.com[:/]v3/([^/]+)/([^/]+)/([^/.]+) ]]; then
+      ado_org="${match[1]}"; ado_project="${match[2]}"; ado_repo="${match[3]}"
+    elif [[ "$remote_url" =~ dev\.azure\.com/([^/]+)/([^/]+)/_git/([^/.]+) ]]; then
+      ado_org="${match[1]}"; ado_project="${match[2]}"; ado_repo="${match[3]}"
+    fi
+    if [[ -n "$ado_org" && -n "$ado_project" && -n "$ado_repo" ]]; then
+      echo "Fetching PRs from Azure DevOps..."
+      local pr_branch
+      while IFS= read -r pr_branch; do
+        pr_branch="${pr_branch#refs/heads/}"
+        [[ -n "$pr_branch" ]] && merged_source_branches[$pr_branch]=1
+      done < <(az repos pr list \
+        --organization "https://dev.azure.com/$ado_org" \
+        --project "$ado_project" \
+        --repository "$ado_repo" \
+        --status completed --top 500 \
+        --query "[].sourceRefName" --output tsv 2>/dev/null)
+      while IFS= read -r pr_branch; do
+        pr_branch="${pr_branch#refs/heads/}"
+        [[ -n "$pr_branch" ]] && abandoned_source_branches[$pr_branch]=1
+      done < <(az repos pr list \
+        --organization "https://dev.azure.com/$ado_org" \
+        --project "$ado_project" \
+        --repository "$ado_repo" \
+        --status abandoned --top 500 \
+        --query "[].sourceRefName" --output tsv 2>/dev/null)
+    fi
+  fi
+
+  # Map a prune reason to a status emoji
+  _wt_reason_emoji() {
+    case "$1" in
+      "PR completed")         printf "✅" ;;
+      "merged into dev")      printf "🔀" ;;
+      "PR abandoned")         printf "🗑" ;;
+      "remote branch gone")   printf "👻" ;;
+      "local branch deleted") printf "💀" ;;
+      *)                      printf "•"  ;;
+    esac
+  }
+
+  # Collect candidates. Flags: dirty = uncommitted changes, abandoned = PR abandoned.
+  # Abandoned worktrees are always listed but only removed with -a; dirty ones need --force.
+  local cand_branches=() cand_dirs=() cand_reasons=() cand_dirty=() cand_abandoned=()
   while IFS= read -r line; do
     local dir=$(echo "$line" | awk '{print $1}')
     local branch=$(echo "$line" | sed 's/.*\[\(.*\)\]/\1/')
 
-    # Skip main repo
+    # Skip main repo and anything outside .worktrees
     [[ "$dir" == "$repo_root" ]] && continue
-    # Skip if not in .worktrees
     [[ "$dir" != */.worktrees/* ]] && continue
 
-    # Check if branch should be pruned:
-    # - Local branch deleted entirely
-    # - Remote tracking was set up but remote branch is now gone
-    # - Branch is fully merged into dev
-    # Branches that were never pushed (no upstream) are NOT pruned
-    local gone=false
+    # Determine prune reason (empty = keep)
+    local reason=""
     if ! git -C "$repo_root" rev-parse --verify "refs/heads/$branch" &>/dev/null; then
-      gone=true
+      reason="local branch deleted"
+    elif [[ -n "${merged_source_branches[$branch]+x}" ]]; then
+      reason="PR completed"
+    elif [[ -n "${abandoned_source_branches[$branch]+x}" ]]; then
+      reason="PR abandoned"
     else
       local upstream=$(git -C "$repo_root" config "branch.$branch.remote" 2>/dev/null)
       if [[ -n "$upstream" ]] && ! git -C "$repo_root" rev-parse --verify "refs/remotes/origin/$branch" &>/dev/null; then
-        gone=true
+        reason="remote branch gone"
       elif git -C "$repo_root" merge-base --is-ancestor "refs/heads/$branch" dev 2>/dev/null; then
-        gone=true
+        reason="merged into dev"
       fi
+    fi
+    [[ -z "$reason" ]] && continue
+
+    local is_abandoned=0
+    [[ "$reason" == "PR abandoned" ]] && is_abandoned=1
+    local is_dirty=0
+    if [[ -d "$dir" ]] && [[ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]]; then
+      is_dirty=1
     fi
 
-    if $gone; then
-      # Note uncommitted changes in output
-      local dirty=""
-      if [[ -d "$dir" ]]; then
-        dirty=$(git -C "$dir" status --porcelain 2>/dev/null)
-      fi
-      local marker=""
-      [[ -n "$dirty" ]] && marker=" ⚠ uncommitted changes"
-      candidates+=("$branch")
-      candidate_dirs+=("$dir")
-      candidate_notes+=("$marker")
-    fi
+    cand_branches+=("$branch")
+    cand_dirs+=("$dir")
+    cand_reasons+=("$reason")
+    cand_dirty+=("$is_dirty")
+    cand_abandoned+=("$is_abandoned")
   done < <(git -C "$repo_root" worktree list | grep -v "bare")
 
-  # Nothing to do?
-  if [[ ${#candidates[@]} -eq 0 ]]; then
+  local total=${#cand_branches[@]}
+  if (( total == 0 )); then
     echo "No stale worktrees found."
     return 0
   fi
 
-  # Show candidates
-  echo ""
-  echo "Will remove:"
-  for i in {1..${#candidates[@]}}; do
-    echo "  - ${candidate_dirs[$i]}  (${candidates[$i]})${candidate_notes[$i]}"
+  # Bucket candidates: removed now, blocked by missing -a, or blocked by missing --force.
+  # NOTE: zsh expands {1..0} to "1 0" (descending), so guard index loops with a length check.
+  local rm_idx=() need_abandoned=() need_force=()
+  local i
+  for i in {1..$total}; do
+    if (( ${cand_abandoned[$i]} )) && ! $include_abandoned; then
+      need_abandoned+=("$i")
+    elif (( ${cand_dirty[$i]} )) && ! $force; then
+      need_force+=("$i")
+    else
+      rm_idx+=("$i")
+    fi
   done
+
+  # Print candidate lines: emoji, branch, reason, dirty marker.
+  _wt_show() {
+    local idx
+    for idx in "$@"; do
+      local em=$(_wt_reason_emoji "${cand_reasons[$idx]}")
+      local mark=""
+      (( ${cand_dirty[$idx]} )) && mark="  ⚠ pending changes"
+      printf "  %s %-48s [%s]%s\n" "$em" "${cand_branches[$idx]}" "${cand_reasons[$idx]}" "$mark"
+    done
+  }
+
   echo ""
+  if (( ${#rm_idx[@]} > 0 )); then
+    echo "Will be removed (${#rm_idx[@]}):"
+    _wt_show "${rm_idx[@]}"
+    echo ""
+  fi
+  if (( ${#need_abandoned[@]} > 0 )); then
+    echo "Abandoned PRs - re-run with -a to remove (${#need_abandoned[@]}):"
+    _wt_show "${need_abandoned[@]}"
+    echo ""
+  fi
+  if (( ${#need_force[@]} > 0 )); then
+    echo "Uncommitted changes - re-run with --force to remove (${#need_force[@]}):"
+    _wt_show "${need_force[@]}"
+    echo ""
+  fi
+
+  echo "Legend: ✅ PR completed  🔀 merged into dev  🗑 PR abandoned  👻 remote gone  💀 local branch deleted  ⚠ pending changes"
+  echo ""
+
+  if [[ ${#rm_idx[@]} -eq 0 ]]; then
+    echo "Nothing to remove (use -a for abandoned PRs, --force for uncommitted changes)."
+    return 0
+  fi
 
   # Confirm
   if ! $skip_confirm; then
@@ -394,9 +491,9 @@ wt-prune() {
 
   # Remove
   local removed=()
-  for i in {1..${#candidates[@]}}; do
-    local dir="${candidate_dirs[$i]}"
-    local branch="${candidates[$i]}"
+  for i in "${rm_idx[@]}"; do
+    local dir="${cand_dirs[$i]}"
+    local branch="${cand_branches[$i]}"
     echo "Removing: $dir ($branch)"
     git -C "$repo_root" worktree remove --force "$dir" 2>/dev/null
     if [[ $? -eq 0 ]]; then
