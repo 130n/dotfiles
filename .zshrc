@@ -39,8 +39,11 @@ source $ZSH/oh-my-zsh.sh
 # User configuration
 
 # History settings
+HISTFILE=${HISTFILE:-$HOME/.zsh_history}
 HISTSIZE=10000
 SAVEHIST=10000
+setopt EXTENDED_HISTORY
+setopt INC_APPEND_HISTORY
 setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_SPACE
 setopt SHARE_HISTORY
@@ -54,14 +57,19 @@ export PATH="$HOME/.local/bin:$PATH"
 # Claude Code / Anthropic
 export CLAUDE_CODE_USE_FOUNDRY=1
 export ANTHROPIC_FOUNDRY_BASE_URL=https://ai-agents-dev-001.services.ai.azure.com/anthropic
-export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-5'
+export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-5'
 export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5'
-export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6'
+export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-5-5'
 export ANTHROPIC_MODEL=$ANTHROPIC_DEFAULT_OPUS_MODEL
 
 # Map Foundry variables to standard Anthropic variables for Claude Code compatibility
 export ANTHROPIC_API_KEY="$ANTHROPIC_FOUNDRY_API_KEY"
 export ANTHROPIC_BASE_URL="$ANTHROPIC_FOUNDRY_BASE_URL"
+
+export AZURE_OPENAI_RESOURCE_NAME="ai-agents-dev-001"
+export AZURE_OPENAI_API_VERSION="v1"
+
+
 
 
 
@@ -132,3 +140,18 @@ npx() { nvm use default >/dev/null 2>&1; unset -f npx; command npx "$@"; }
 pnpm() { nvm use default >/dev/null 2>&1; unset -f pnpm; command pnpm "$@"; }
 corepack() { nvm use default >/dev/null 2>&1; unset -f corepack; command corepack "$@"; }
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Chrome with remote debugging for Claude Code superpowers-chrome
+alias chrome-debug='google-chrome --remote-debugging-port=9223 --user-data-dir=/tmp/chrome-debug &'
+
+fpath+=~/.zfunc; autoload -Uz compinit; compinit
+
+zstyle ':completion:*' menu select
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/leon/.local/bin:$PATH"
+
+
+# Claude Code: sv_SE for a 24h "done HH:MM"; also leaks into its tool shells (decimal comma in Node)
+alias claude='LANG=sv_SE.UTF-8 claude'
