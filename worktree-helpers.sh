@@ -304,9 +304,10 @@ wt-status() {
 
 # Remove worktrees whose branches have been merged/deleted
 # Shows candidates first (with reason), then asks for confirmation
-# Usage: wt-prune [--force|-f] [--include-abandoned|-a] [-y]
-#   --force / -f             also remove worktrees with uncommitted changes
+# Usage: wt-prune [--force|-f] [--include-abandoned|-a] [--include-empty|-e] [-y]
+#   --force / -f             also remove worktrees with uncommitted changes or agent artifacts
 #   --include-abandoned / -a treat branches with abandoned Azure DevOps PRs as prunable
+#   --include-empty / -e     treat branches that never got a commit as prunable
 #   -y                       skip confirmation prompt
 wt-prune() {
   local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
@@ -323,10 +324,12 @@ wt-prune() {
   local skip_confirm=false
   local force=false
   local include_abandoned=false
+  local include_empty=false
   for arg in "$@"; do
     [[ "$arg" == "-y" ]] && skip_confirm=true
     [[ "$arg" == "--force" || "$arg" == "-f" ]] && force=true
     [[ "$arg" == "--include-abandoned" || "$arg" == "-a" ]] && include_abandoned=true
+    [[ "$arg" == "--include-empty" || "$arg" == "-e" ]] && include_empty=true
   done
 
   # Fetch latest remote state and clean up stale references
@@ -371,6 +374,12 @@ wt-prune() {
     fi
   fi
 
+  # Compare against the fetched remote tip; the local dev ref is only updated by a
+  # checkout+pull, so it can sit behind origin and misreport what has landed.
+  local base_ref="dev"
+  git -C "$repo_root" rev-parse --verify -q refs/remotes/origin/dev &>/dev/null &&
+    base_ref="refs/remotes/origin/dev"
+
   # Map a prune reason to a status emoji
   _wt_reason_emoji() {
     case "$1" in
@@ -379,13 +388,24 @@ wt-prune() {
       "PR abandoned")         printf "🗑" ;;
       "remote branch gone")   printf "👻" ;;
       "local branch deleted") printf "💀" ;;
+      "no commits")           printf "🫙" ;;
       *)                      printf "•"  ;;
     esac
   }
 
+  # Work an agent produced but git never sees: these paths are gitignored, so
+  # `status --porcelain` reports the worktree as clean right before rm -rf.
+  _wt_has_agent_artifacts() {
+    local dir="$1" sub
+    for sub in .claude/ground-truth .claude/consult .claude/debate; do
+      [[ -d "$dir/$sub" ]] && [[ -n "$(find "$dir/$sub" -type f -print -quit 2>/dev/null)" ]] && return 0
+    done
+    return 1
+  }
+
   # Collect candidates. Flags: dirty = uncommitted changes, abandoned = PR abandoned.
   # Abandoned worktrees are always listed but only removed with -a; dirty ones need --force.
-  local cand_branches=() cand_dirs=() cand_reasons=() cand_dirty=() cand_abandoned=()
+  local cand_branches=() cand_dirs=() cand_reasons=() cand_dirty=() cand_abandoned=() cand_empty=() cand_mark=()
   while IFS= read -r line; do
     local dir=$(echo "$line" | awk '{print $1}')
     local branch=$(echo "$line" | sed 's/.*\[\(.*\)\]/\1/')
@@ -406,17 +426,31 @@ wt-prune() {
       local upstream=$(git -C "$repo_root" config "branch.$branch.remote" 2>/dev/null)
       if [[ -n "$upstream" ]] && ! git -C "$repo_root" rev-parse --verify "refs/remotes/origin/$branch" &>/dev/null; then
         reason="remote branch gone"
-      elif git -C "$repo_root" merge-base --is-ancestor "refs/heads/$branch" dev 2>/dev/null; then
-        reason="merged into dev"
+      elif git -C "$repo_root" merge-base --is-ancestor "refs/heads/$branch" "$base_ref" 2>/dev/null; then
+        # Contributing nothing to dev looks identical to having been merged into it:
+        # both leave zero commits ahead. Only a branch that was pushed can have been
+        # merged, so without an upstream this is a branch that never got started.
+        if [[ -n "$upstream" ]]; then
+          reason="merged into dev"
+        else
+          reason="no commits"
+        fi
       fi
     fi
     [[ -z "$reason" ]] && continue
 
     local is_abandoned=0
     [[ "$reason" == "PR abandoned" ]] && is_abandoned=1
-    local is_dirty=0
-    if [[ -d "$dir" ]] && [[ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]]; then
-      is_dirty=1
+    local is_empty=0
+    [[ "$reason" == "no commits" ]] && is_empty=1
+    local is_dirty=0 mark=""
+    if [[ -d "$dir" ]]; then
+      if [[ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]]; then
+        is_dirty=1; mark="pending changes"
+      fi
+      if _wt_has_agent_artifacts "$dir"; then
+        is_dirty=1; mark="${mark:+$mark, }agent artifacts"
+      fi
     fi
 
     cand_branches+=("$branch")
@@ -424,6 +458,8 @@ wt-prune() {
     cand_reasons+=("$reason")
     cand_dirty+=("$is_dirty")
     cand_abandoned+=("$is_abandoned")
+    cand_empty+=("$is_empty")
+    cand_mark+=("$mark")
   done < <(git -C "$repo_root" worktree list | grep -v "bare")
 
   local total=${#cand_branches[@]}
@@ -434,11 +470,13 @@ wt-prune() {
 
   # Bucket candidates: removed now, blocked by missing -a, or blocked by missing --force.
   # NOTE: zsh expands {1..0} to "1 0" (descending), so guard index loops with a length check.
-  local rm_idx=() need_abandoned=() need_force=()
+  local rm_idx=() need_abandoned=() need_empty=() need_force=()
   local i
   for i in {1..$total}; do
     if (( ${cand_abandoned[$i]} )) && ! $include_abandoned; then
       need_abandoned+=("$i")
+    elif (( ${cand_empty[$i]} )) && ! $include_empty; then
+      need_empty+=("$i")
     elif (( ${cand_dirty[$i]} )) && ! $force; then
       need_force+=("$i")
     else
@@ -451,8 +489,8 @@ wt-prune() {
     local idx
     for idx in "$@"; do
       local em=$(_wt_reason_emoji "${cand_reasons[$idx]}")
-      local mark=""
-      (( ${cand_dirty[$idx]} )) && mark="  ⚠ pending changes"
+      local mark="${cand_mark[$idx]}"
+      [[ -n "$mark" ]] && mark="  ⚠ $mark"
       printf "  %s %-48s [%s]%s\n" "$em" "${cand_branches[$idx]}" "${cand_reasons[$idx]}" "$mark"
     done
   }
@@ -468,17 +506,22 @@ wt-prune() {
     _wt_show "${need_abandoned[@]}"
     echo ""
   fi
+  if (( ${#need_empty[@]} > 0 )); then
+    echo "Never committed - re-run with -e to remove (${#need_empty[@]}):"
+    _wt_show "${need_empty[@]}"
+    echo ""
+  fi
   if (( ${#need_force[@]} > 0 )); then
     echo "Uncommitted changes - re-run with --force to remove (${#need_force[@]}):"
     _wt_show "${need_force[@]}"
     echo ""
   fi
 
-  echo "Legend: ✅ PR completed  🔀 merged into dev  🗑 PR abandoned  👻 remote gone  💀 local branch deleted  ⚠ pending changes"
+  echo "Legend: ✅ PR completed  🔀 merged into dev  🗑 PR abandoned  👻 remote gone  💀 local branch deleted  🫙 never committed  ⚠ pending changes"
   echo ""
 
   if [[ ${#rm_idx[@]} -eq 0 ]]; then
-    echo "Nothing to remove (use -a for abandoned PRs, --force for uncommitted changes)."
+    echo "Nothing to remove (use -a for abandoned PRs, -e for never-committed branches, --force for pending changes)."
     return 0
   fi
 
@@ -495,12 +538,21 @@ wt-prune() {
     local dir="${cand_dirs[$i]}"
     local branch="${cand_branches[$i]}"
     echo "Removing: $dir ($branch)"
+    # A live compose stack keeps writing root-owned files (vite cache) into the worktree.
+    local containers=($(docker ps -aq --filter "label=com.docker.compose.project.working_dir=$dir" 2>/dev/null))
+    if [[ ${#containers[@]} -gt 0 ]]; then
+      echo "  Removing ${#containers[@]} docker container(s)..."
+      docker rm -f -v "${containers[@]}" >/dev/null
+    fi
     git -C "$repo_root" worktree remove --force "$dir" 2>/dev/null
     if [[ $? -eq 0 ]]; then
       removed+=("$branch")
     else
       echo "  Failed, trying manual cleanup..."
-      rm -rf "$dir"
+      if ! rm -rf "$dir" 2>/dev/null; then
+        echo "  Removing root-owned leftovers via docker..."
+        docker run --rm -v "${dir:h}:/w" alpine rm -rf "/w/${dir:t}"
+      fi
       git -C "$repo_root" worktree prune
       removed+=("$branch")
     fi
