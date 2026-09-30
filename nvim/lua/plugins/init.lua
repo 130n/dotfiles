@@ -102,7 +102,7 @@ return {
     config = function()
       require("lualine").setup({
         options = {
-          theme = "catppuccin",
+          theme = "catppuccin-frappe",
         },
       })
     end,
@@ -125,7 +125,27 @@ return {
   {
     "folke/which-key.nvim",
     event = "VeryLazy",
-    config = true,
+    config = function()
+      local wk = require("which-key")
+      wk.setup({})
+
+      -- Group labels so Space shows a discoverable PR-review menu.
+      if wk.add then
+        wk.add({
+          { "<leader>p", group = "PR review" },
+          { "<leader>g", group = "Git / diff" },
+          { "<leader>f", group = "Find" },
+          { "<leader>s", group = "Scoped search" },
+        })
+      else
+        wk.register({
+          p = { name = "+PR review" },
+          g = { name = "+Git / diff" },
+          f = { name = "+Find" },
+          s = { name = "+Scoped search" },
+        }, { prefix = "<leader>" })
+      end
+    end,
   },
 
   -- Bullets.vim (auto-bullets och checkbox-toggle för markdown)
@@ -144,7 +164,7 @@ return {
       require("orgmode").setup({
         org_agenda_files = "~/dev/todo/*.org",
         org_default_notes_file = "~/dev/todo/TODO.org",
-        org_todo_keywords = { "TODO", "IN_PROGRESS", "WAITING", "|", "DONE", "CANCELLED" },
+        org_todo_keywords = { "TODO", "IN_PROGRESS", "WAITING", "|", "DONE", "MOVED", "CANCELLED" },
         org_startup_folded = "content",
         org_startup_indented = true,
         org_capture_templates = {
@@ -167,32 +187,94 @@ return {
       vim.api.nvim_create_autocmd("FileType", {
         pattern = "org",
         callback = function()
+          -- Fast batch archive (direct file manipulation)
           vim.keymap.set("n", "<leader>oD", function()
-            local org = require("orgmode")
-            local file = org.files:get_current_file()
+            local bufnr = vim.api.nvim_get_current_buf()
+            local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+            local filepath = vim.api.nvim_buf_get_name(bufnr)
+            local archive_path = filepath:gsub("%.org$", "_archive.org")
 
-            local function has_active_children(headline)
-              for _, child in ipairs(headline:get_child_headlines()) do
-                if not child:is_done() then return true end
-                if has_active_children(child) then return true end
+            local active_todo_keywords = {
+              TODO = true,
+              IN_PROGRESS = true,
+              WAITING = true,
+            }
+
+            -- Parse headlines and find closed items without active TODO children.
+            -- Plain org subheadings (without TODO keyword) are content, not active tasks.
+            local to_archive = {}
+            local i = 1
+            while i <= #lines do
+              local line = lines[i]
+              local level, todo, title = line:match("^(%*+)%s+(%S+)%s+(.*)$")
+              if level and (todo == "DONE" or todo == "CANCELLED" or todo == "MOVED") then
+                -- Check if any children are not done
+                local has_active = false
+                local end_line = i
+                for j = i + 1, #lines do
+                  local next_level = lines[j]:match("^(%*+)%s+")
+                  if next_level then
+                    if #next_level <= #level then break end
+                    local child_todo = lines[j]:match("^%*+%s+(%S+)%s+")
+                    if child_todo and active_todo_keywords[child_todo] then
+                      has_active = true
+                      break
+                    end
+                  end
+                  end_line = j
+                end
+                if not has_active then
+                  table.insert(to_archive, {start = i, ["end"] = end_line})
+                  i = end_line
+                end
               end
-              return false
+              i = i + 1
             end
 
-            local done = vim.tbl_filter(function(h)
-              return h:is_done() and not has_active_children(h)
-            end, file:get_headlines())
-            if #done == 0 then
-              vim.notify("No DONE items to archive (items with active children are skipped)")
+            if #to_archive == 0 then
+              vim.notify("No closed items to archive (closed items with active children are kept)")
               return
             end
-            -- Archive from bottom to top so line numbers stay valid
-            table.sort(done, function(a, b) return a:get_range().start_line > b:get_range().start_line end)
-            for _, headline in ipairs(done) do
-              org.capture:refile_file_headline_to_archive(headline)
+
+            -- Extract items to archive (reverse order to preserve line numbers)
+            local archived_lines = {}
+            for i = #to_archive, 1, -1 do
+              local range = to_archive[i]
+              local item = {}
+              for j = range.start, range["end"] do
+                table.insert(item, lines[j])
+              end
+              table.insert(archived_lines, 1, table.concat(item, "\n"))
+              -- Remove from buffer
+              for j = range["end"], range.start, -1 do
+                table.remove(lines, j)
+              end
             end
-            vim.notify(("Archived %d items"):format(#done))
-          end, { buffer = true, desc = "org archive all DONE (skip active children)" })
+
+            -- Write updated main file
+            vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+            vim.cmd("write")
+
+            -- Append to archive file
+            local archive_content = ""
+            local archive_file = io.open(archive_path, "r")
+            if archive_file then
+              archive_content = archive_file:read("*all")
+              archive_file:close()
+            end
+            archive_file = io.open(archive_path, "w")
+            if archive_file then
+              archive_file:write(archive_content)
+              if not archive_content:match("\n$") and archive_content ~= "" then
+                archive_file:write("\n")
+              end
+              archive_file:write(table.concat(archived_lines, "\n\n") .. "\n")
+              archive_file:close()
+              vim.notify(("✓ Archived %d items to %s"):format(#to_archive, vim.fn.fnamemodify(archive_path, ":t")))
+            else
+              vim.notify("Error: Could not write to archive file", vim.log.levels.ERROR)
+            end
+          end, { buffer = true, desc = "org archive all closed: DONE/CANCELLED/MOVED (fast batch)" })
         end,
       })
     end,

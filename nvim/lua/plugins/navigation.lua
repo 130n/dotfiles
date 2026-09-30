@@ -21,17 +21,63 @@ return {
     end,
   },
 
-  -- Diffview: se alla ändringar mot en branch (t.ex. dev)
+  -- Diffview: lokal PR-vy/diff mot en base branch (t.ex. origin/dev)
   {
     "sindrets/diffview.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory", "PRView", "PROpen" },
     keys = {
-      { "<leader>gd", "<cmd>DiffviewOpen dev<CR>", desc = "Diff vs dev" },
-      { "<leader>gD", "<cmd>DiffviewOpen<CR>", desc = "Diff vs HEAD" },
+      -- PR-review workflow (visible under <leader>p in which-key)
+      { "<leader>pr", "<cmd>PRView<CR>", desc = "PR view vs origin/dev" },
+      { "<leader>pR", "<cmd>PRView dev<CR>", desc = "PR view vs local dev" },
+      { "<leader>po", "<cmd>PROpen<CR>", desc = "PR files in tabs vs origin/dev" },
+      { "<leader>pc", "<cmd>DiffviewClose<CR>", desc = "Close PR/diff view" },
+      { "<leader>ph", "<cmd>DiffviewFileHistory %<CR>", desc = "Current file history" },
+
+      -- Git/diff aliases (kept for muscle memory)
+      { "<leader>gd", "<cmd>DiffviewOpen origin/dev...HEAD<CR>", desc = "Diff vs origin/dev" },
+      { "<leader>gD", "<cmd>DiffviewOpen<CR>", desc = "Diff vs working tree" },
       { "<leader>gh", "<cmd>DiffviewFileHistory %<CR>", desc = "File history" },
       { "<leader>gq", "<cmd>DiffviewClose<CR>", desc = "Close diffview" },
     },
     config = function()
       require("diffview").setup()
+
+      vim.api.nvim_create_user_command("PRView", function(opts)
+        local base = opts.args ~= "" and opts.args or "origin/dev"
+        vim.cmd("DiffviewOpen " .. base .. "...HEAD")
+      end, {
+        nargs = "?",
+        desc = "Open a GitHub/Azure-PR-like diff view against a base branch (default: origin/dev)",
+        complete = function()
+          return { "origin/dev", "dev", "origin/main", "main" }
+        end,
+      })
+
+      vim.api.nvim_create_user_command("PROpen", function(opts)
+        local base = opts.args ~= "" and opts.args or "origin/dev"
+        local files = vim.fn.systemlist(
+          "git diff --name-only --diff-filter=d " .. base .. "...HEAD"
+        )
+        if vim.v.shell_error ~= 0 then
+          vim.notify("git diff failed: " .. table.concat(files, "\n"), vim.log.levels.ERROR)
+          return
+        end
+        if #files == 0 then
+          vim.notify("No changed files vs " .. base, vim.log.levels.WARN)
+          return
+        end
+        for _, f in ipairs(files) do
+          vim.cmd("tabedit " .. vim.fn.fnameescape(f))
+        end
+        vim.notify("Opened " .. #files .. " file(s) in tabs", vim.log.levels.INFO)
+      end, {
+        nargs = "?",
+        desc = "Open every file changed vs base branch in its own tab (default: origin/dev)",
+        complete = function()
+          return { "origin/dev", "dev", "origin/main", "main" }
+        end,
+      })
     end,
   },
 
