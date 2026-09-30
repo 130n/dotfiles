@@ -271,7 +271,7 @@ tmux_conf_theme_right_separator_sub="|"
 #     - #{username_ssh}
 tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} "
 #tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} | #{pretty_pane_current_path} "
-tmux_conf_theme_status_right=" #{prefix}#{mouse}#{pairing}#{synchronized}#{?battery_status,#{battery_status},}#{?battery_bar, #{battery_bar},}#{?battery_percentage, #{battery_percentage},} , %R , %d %b | #{username}#{root} | #{hostname} "
+tmux_conf_theme_status_right=" #{prefix}#{mouse}#{pairing}#{synchronized}#{?battery_status,#{battery_status},}#{?battery_bar, #{battery_bar},}#{?battery_percentage, #{battery_percentage},} , #(/home/leon/.local/bin/tmux-mem) , %R , %d %b | #{username}#{root} | #{hostname} "
 
 # status left style
 tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6,$tmux_conf_theme_colour_7,$tmux_conf_theme_colour_8"
@@ -386,6 +386,13 @@ tmux_conf_urlscan_options="--compact --dedupe"
 # increase history size
 #set -g history-limit 10000
 
+# tmux-256color instead of Oh my tmux!'s screen-256color (italics, true color in nvim)
+set -g default-terminal "tmux-256color"
+
+# no bell or activity alerts
+set -g bell-action none
+set -g activity-action none
+
 # enable true color (24-bit RGB)
 set -ga terminal-features ",xterm-256color:RGB"
 set -ga terminal-overrides ",xterm-256color:Tc"
@@ -456,8 +463,18 @@ tmux_conf_uninstall_plugins_on_reload=true
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
 set -g @plugin 'wfxr/tmux-fzf-url'
+
+# Restore tmux layout automatically when the tmux server starts.
 set -g @continuum-restore 'on'
-#set -g @continuum-restore 'on'
+# Save regularly, and capture visible pane contents so the last command/output is visible after restore.
+set -g @continuum-save-interval '10'
+set -g @resurrect-capture-pane-contents 'on'
+# The workmux sidebar pane cannot be restored, so it returns as an empty split that
+# the sidebar daemon then duplicates. Drop it from every save and let workmux own it.
+set -g @resurrect-hook-post-save-all 'python3 ~/dotfiles/tmux/resurrect-strip-workmux-sidebar.py'
+
+run-shell ~/.tmux/plugins/tmux-resurrect/resurrect.tmux
+run-shell ~/.tmux/plugins/tmux-continuum/continuum.tmux
 
 
 # -- custom variables ----------------------------------------------------------
@@ -513,3 +530,4 @@ set -g @continuum-restore 'on'
 # "$@"
 # # /!\ do not remove the previous line
 # #     do not write below this line
+set -g extended-keys on
