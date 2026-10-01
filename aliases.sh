@@ -84,3 +84,6 @@ for item in data.get(\"value\", []):
         user = exp.get(\"principal\", {}).get(\"displayName\", \"?\")
         print(f\"{user}: {role} on {scope} — {time_left}\")
 "'
+
+# LazyVim trial, isolated from the regular nvim config
+alias lv='NVIM_APPNAME=lazyvim nvim'
